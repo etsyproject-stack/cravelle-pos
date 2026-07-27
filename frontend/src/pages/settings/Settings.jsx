@@ -7,14 +7,14 @@ import Button from '../../components/ui/Button';
 import { Input, Select, Textarea } from '../../components/ui/Input';
 
 const TIMEZONES = [
-  'UTC', 'America/New_York', 'America/Chicago', 'America/Los_Angeles',
-  'Europe/London', 'Europe/Paris', 'Asia/Dubai', 'Asia/Karachi',
-  'Asia/Kolkata', 'Asia/Dhaka', 'Asia/Singapore', 'Australia/Sydney',
+  'Asia/Karachi', 'UTC', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Dhaka',
+  'Asia/Singapore', 'Europe/London', 'Europe/Paris',
+  'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Australia/Sydney',
 ];
 
 const CURRENCIES = [
-  { code: 'USD', symbol: '$' }, { code: 'EUR', symbol: '€' }, { code: 'GBP', symbol: '£' },
-  { code: 'AED', symbol: 'د.إ' }, { code: 'PKR', symbol: '₨' }, { code: 'INR', symbol: '₹' },
+  { code: 'PKR', symbol: 'Rs ' }, { code: 'USD', symbol: '$' }, { code: 'EUR', symbol: '€' },
+  { code: 'GBP', symbol: '£' }, { code: 'AED', symbol: 'د.إ' }, { code: 'INR', symbol: '₹' },
   { code: 'BDT', symbol: '৳' }, { code: 'SAR', symbol: '﷼' },
 ];
 
@@ -77,6 +77,14 @@ export default function Settings() {
             {TIMEZONES.map((tz) => (
               <option key={tz} value={tz}>{tz}</option>
             ))}
+          </Select>
+          <Select
+            label="Show decimals on prices"
+            value={form.currency_decimals ?? '0'}
+            onChange={(e) => set('currency_decimals', e.target.value)}
+          >
+            <option value="0">No — whole numbers (Rs 1,250)</option>
+            <option value="2">Yes — two decimals (Rs 1,250.00)</option>
           </Select>
         </div>
       </Card>

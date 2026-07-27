@@ -7,6 +7,7 @@ import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
+import OfflineNotice from '../../components/ui/OfflineNotice';
 import Modal from '../../components/ui/Modal';
 import { StatusBadge } from '../../components/ui/Badge';
 import ReceiptModal from '../../components/pos/ReceiptModal';
@@ -58,7 +59,7 @@ function KotModal({ order, onClose }) {
 
 export default function Orders() {
   const [status, setStatus] = useState('all');
-  const { data, loading, reload } = useApi(
+  const { data, loading, error, reload } = useApi(
     () => orderApi.list(status === 'all' ? {} : { status }),
     [status]
   );
@@ -98,6 +99,8 @@ export default function Orders() {
       <Card bodyClassName="p-0 sm:p-0">
         {loading ? (
           <Spinner />
+        ) : error && !data ? (
+          <OfflineNotice what="Order history" />
         ) : (
           <Table
             columns={[

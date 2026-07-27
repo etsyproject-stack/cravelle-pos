@@ -55,6 +55,7 @@ export default function CartPanel({
   setQty,
   removeItem,
   taxName,
+  showTax = true,
   onDiscount,
   onHold,
   onShowHeld,
@@ -123,10 +124,12 @@ export default function CartPanel({
               −{formatMoney(totals.discount)}
             </span>
           </button>
-          <div className="flex justify-between text-slate-600">
-            <span>{taxName}</span>
-            <span>{formatMoney(totals.tax)}</span>
-          </div>
+          {showTax && (
+            <div className="flex justify-between text-slate-600">
+              <span>{taxName}</span>
+              <span>{formatMoney(totals.tax)}</span>
+            </div>
+          )}
           <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900">
             <span>Total</span>
             <span>{formatMoney(totals.total)}</span>

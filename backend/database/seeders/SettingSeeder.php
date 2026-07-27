@@ -10,17 +10,20 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         $defaults = [
-            'restaurant_name' => 'Cravelle Fast Food',
-            'restaurant_address' => '42 Flavor Street, Food City',
-            'restaurant_phone' => '+1 555 010 4242',
-            'currency_symbol' => '$',
-            'currency_code' => 'USD',
-            'tax_rate' => '10',
-            'tax_name' => 'VAT',
-            'timezone' => 'UTC',
-            'receipt_footer' => 'Thank you for your order! See you again soon.',
-            'receipt_printer' => 'EPSON TM-T20III',
-            'loyalty_earn_rate' => '1',
+            'restaurant_name' => 'Cravelle 2.0',
+            'restaurant_address' => 'Shop # 18, Emirates Mall, Model Town, Multan',
+            'restaurant_phone' => '0302 4777730',
+            'currency_symbol' => 'Rs ',
+            'currency_code' => 'PKR',
+            'currency_decimals' => '0',
+            // Menu prices are tax-inclusive; set a rate here if you bill GST separately.
+            'tax_rate' => '0',
+            'tax_name' => 'GST',
+            'timezone' => 'Asia/Karachi',
+            'receipt_footer' => "Thank you! Taste what you crave.\nFree Home Delivery — 0302 4777730\ncravelle.bar",
+            'receipt_printer' => 'Default Printer',
+            // 1 loyalty point per Rs 100 spent.
+            'loyalty_earn_rate' => '0.01',
         ];
 
         foreach ($defaults as $key => $value) {

@@ -18,6 +18,8 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'client_uuid' => ['nullable', 'uuid'],
+            'placed_at' => ['nullable', 'date'],
             'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'order_type' => ['required', Rule::in(OrderType::values())],
             'notes' => ['nullable', 'string', 'max:1000'],

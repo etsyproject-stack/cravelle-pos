@@ -28,6 +28,9 @@ export default function ReceiptModal({ order, onClose }) {
           {settings.restaurant_address && <p>{settings.restaurant_address}</p>}
           {settings.restaurant_phone && <p>Tel: {settings.restaurant_phone}</p>}
         </div>
+        {order.pending_sync && (
+          <p className="mt-2 text-center font-bold">*** OFFLINE SALE — AWAITING UPLOAD ***</p>
+        )}
         <div className="my-2 border-t border-dashed border-slate-400" />
         <div className="flex justify-between">
           <span>Order: {order.order_number}</span>
@@ -63,10 +66,12 @@ export default function ReceiptModal({ order, onClose }) {
             <span>-{formatMoney(order.discount)}</span>
           </div>
         )}
-        <div className="flex justify-between">
-          <span>{settings.tax_name} ({order.tax_rate}%)</span>
-          <span>{formatMoney(order.tax)}</span>
-        </div>
+        {Number(order.tax_rate) > 0 && (
+          <div className="flex justify-between">
+            <span>{settings.tax_name} ({order.tax_rate}%)</span>
+            <span>{formatMoney(order.tax)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm font-bold">
           <span>TOTAL</span><span>{formatMoney(order.total)}</span>
         </div>
@@ -89,7 +94,7 @@ export default function ReceiptModal({ order, onClose }) {
           <p className="mt-1">Loyalty points earned: {order.loyalty_points_earned}</p>
         )}
         <div className="my-2 border-t border-dashed border-slate-400" />
-        <p className="text-center">{settings.receipt_footer}</p>
+        <p className="whitespace-pre-line text-center">{settings.receipt_footer}</p>
       </div>
     </Modal>
   );

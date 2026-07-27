@@ -13,12 +13,12 @@ class ExpenseSeeder extends Seeder
         $manager = User::query()->where('email', 'manager@cravelle.test')->first();
 
         $expenses = [
-            ['title' => 'Weekly meat & poultry order', 'category' => 'ingredients', 'amount' => 640.00, 'expense_date' => now()->subDays(20)],
-            ['title' => 'Produce and vegetables', 'category' => 'ingredients', 'amount' => 215.50, 'expense_date' => now()->subDays(14)],
-            ['title' => 'Electricity bill', 'category' => 'utilities', 'amount' => 380.00, 'expense_date' => now()->subDays(10)],
-            ['title' => 'Fryer maintenance', 'category' => 'maintenance', 'amount' => 120.00, 'expense_date' => now()->subDays(6)],
-            ['title' => 'Social media ads', 'category' => 'marketing', 'amount' => 90.00, 'expense_date' => now()->subDays(3)],
-            ['title' => 'Packaging supplies', 'category' => 'other', 'amount' => 145.75, 'expense_date' => now()->subDay()],
+            ['title' => 'Chicken & meat supply', 'category' => 'ingredients', 'amount' => 85000, 'expense_date' => now()->subDays(20)],
+            ['title' => 'Vegetables and salad', 'category' => 'ingredients', 'amount' => 18500, 'expense_date' => now()->subDays(14)],
+            ['title' => 'Electricity bill', 'category' => 'utilities', 'amount' => 42000, 'expense_date' => now()->subDays(10)],
+            ['title' => 'Fryer maintenance', 'category' => 'maintenance', 'amount' => 9500, 'expense_date' => now()->subDays(6)],
+            ['title' => 'Social media ads', 'category' => 'marketing', 'amount' => 12000, 'expense_date' => now()->subDays(3)],
+            ['title' => 'Packaging & boxes', 'category' => 'other', 'amount' => 22000, 'expense_date' => now()->subDay()],
         ];
 
         foreach ($expenses as $expense) {

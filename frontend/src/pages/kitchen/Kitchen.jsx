@@ -4,6 +4,7 @@ import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
+import OfflineNotice from '../../components/ui/OfflineNotice';
 
 const COLUMN_STYLES = {
   pending: { title: 'New Orders', accent: 'border-amber-400', chip: 'bg-amber-100 text-amber-700' },
@@ -59,7 +60,7 @@ function TicketCard({ order, onAdvance }) {
 }
 
 export default function Kitchen() {
-  const { data, loading, reload } = useApi(() => kitchenApi.orders());
+  const { data, loading, error, reload } = useApi(() => kitchenApi.orders());
   const { toast } = useToast();
 
   // KDS auto-refreshes so new tickets appear without interaction.
@@ -80,6 +81,7 @@ export default function Kitchen() {
   };
 
   if (loading && !data) return <Spinner />;
+  if (error && !data) return <OfflineNotice what="The kitchen display" />;
 
   return (
     <div className="grid min-h-full grid-cols-1 gap-4 bg-slate-200 p-4 md:grid-cols-3">

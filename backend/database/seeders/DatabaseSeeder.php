@@ -4,6 +4,14 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
+/**
+ * Production seed: staff logins, shop settings, the live menu and the
+ * walk-in customer. No invented sales — your reports start from your
+ * first real order.
+ *
+ * For a populated demo (sample customers, coupons, expenses and a month of
+ * fake orders) run: php artisan db:seed --class=DemoDataSeeder
+ */
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
@@ -13,9 +21,6 @@ class DatabaseSeeder extends Seeder
             SettingSeeder::class,
             MenuSeeder::class,
             CustomerSeeder::class,
-            CouponSeeder::class,
-            ExpenseSeeder::class,
-            DemoOrderSeeder::class,
         ]);
     }
 }

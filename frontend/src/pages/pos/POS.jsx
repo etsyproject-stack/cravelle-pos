@@ -2,9 +2,18 @@ import { useMemo, useState } from 'react';
 import { categoryApi, productApi, customerApi, holdOrderApi, orderApi } from '../../api';
 import { useApi } from '../../hooks/useApi';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useAuth } from '../../context/AuthContext';
+import { useOffline } from '../../context/OfflineContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useToast } from '../../context/ToastContext';
 import { useCart } from './useCart';
+import { buildOfflineOrder } from '../../offline/orderBuilder';
+import {
+  addLocalHeldOrder,
+  localHeldOrders,
+  queueOrder,
+  removeLocalHeldOrder,
+} from '../../offline/storage';
 import CategorySidebar from '../../components/pos/CategorySidebar';
 import ProductGrid from '../../components/pos/ProductGrid';
 import CartPanel from '../../components/pos/CartPanel';
@@ -21,9 +30,24 @@ const ORDER_TYPES = [
   { id: 'delivery', label: 'Delivery' },
 ];
 
+/** Local filtering used when the menu comes from the offline cache. */
+function filterCached(products, categoryId, search) {
+  const term = search.trim().toLowerCase();
+  return products.filter((p) => {
+    if (p.is_active === false) return false;
+    if (categoryId && p.category_id !== categoryId) return false;
+    if (!term) return true;
+    return (
+      p.name.toLowerCase().includes(term) || (p.sku || '').toLowerCase().includes(term)
+    );
+  });
+}
+
 export default function POS() {
   const { settings } = useSettings();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { online, catalog, refreshPending } = useOffline();
   const taxRate = Number(settings.tax_rate || 0);
 
   const cartApi = useCart(taxRate);
@@ -40,19 +64,28 @@ export default function POS() {
   const [showCartMobile, setShowCartMobile] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [localHeld, setLocalHeld] = useState(() => localHeldOrders());
 
-  const { data: catData } = useApi(() => categoryApi.list());
+  const { data: catData } = useApi(() => categoryApi.list(), [online]);
   const { data: prodData, loading: prodLoading } = useApi(
-    () => productApi.list({ category_id: categoryId ?? undefined, search: debouncedSearch || undefined, active: 1 }),
-    [categoryId, debouncedSearch]
+    () =>
+      productApi.list({
+        category_id: categoryId ?? undefined,
+        search: debouncedSearch || undefined,
+        active: 1,
+      }),
+    [categoryId, debouncedSearch, online]
   );
-  const { data: custData } = useApi(() => customerApi.list());
-  const { data: heldData, reload: reloadHeld } = useApi(() => holdOrderApi.list());
+  const { data: custData } = useApi(() => customerApi.list(), [online]);
+  const { data: heldData, reload: reloadHeld } = useApi(() => holdOrderApi.list(), [online]);
 
-  const categories = catData?.data || [];
-  const products = prodData?.data || [];
-  const customers = custData?.data || [];
-  const heldOrders = heldData?.data || [];
+  // Live data when we have it, the cached menu when we don't.
+  const usingCache = !prodData;
+  const categories = catData?.data || catalog?.categories || [];
+  const products = prodData?.data || filterCached(catalog?.products || [], categoryId, debouncedSearch);
+  const customers = custData?.data || catalog?.customers || [];
+  const heldOrders = online ? heldData?.data || [] : localHeld;
+  const catalogMissing = usingCache && !catalog;
 
   const pickProduct = (product) => {
     if (product.variants?.length > 0 || product.addons?.length > 0) {
@@ -63,32 +96,85 @@ export default function POS() {
   };
 
   const holdOrder = async () => {
-    try {
-      await holdOrderApi.create({ cart });
-      cartApi.clear();
-      reloadHeld();
-      toast('Order held');
-    } catch {
-      toast('Failed to hold order', 'error');
+    if (online) {
+      try {
+        await holdOrderApi.create({ cart });
+        cartApi.clear();
+        reloadHeld();
+        toast('Order held');
+        return;
+      } catch {
+        // fall through to holding it on this device
+      }
     }
+    const held = {
+      id: `local-${Date.now()}`,
+      reference: `HOLD-${new Date().toTimeString().slice(0, 5).replace(':', '')}`,
+      cart,
+      created_at: new Date().toISOString(),
+      local: true,
+    };
+    addLocalHeldOrder(held);
+    setLocalHeld(localHeldOrders());
+    cartApi.clear();
+    toast('Order held on this device');
   };
 
   const resumeOrder = async (held) => {
     cartApi.restore(held.cart);
-    await holdOrderApi.remove(held.id);
-    reloadHeld();
+    if (held.local) {
+      removeLocalHeldOrder(held.id);
+      setLocalHeld(localHeldOrders());
+    } else {
+      await holdOrderApi.remove(held.id);
+      reloadHeld();
+    }
     setShowHeld(false);
     toast(`Resumed ${held.reference}`);
   };
 
   const discardHeld = async (held) => {
-    await holdOrderApi.remove(held.id);
-    reloadHeld();
+    if (held.local) {
+      removeLocalHeldOrder(held.id);
+      setLocalHeld(localHeldOrders());
+    } else {
+      await holdOrderApi.remove(held.id);
+      reloadHeld();
+    }
+  };
+
+  /** Save the sale on this device so trade continues without a connection. */
+  const storeOfflineOrder = (payments) => {
+    const { payload, receipt } = buildOfflineOrder({
+      cart,
+      totals,
+      payments,
+      settings,
+      cashier: user,
+      customer: customers.find((c) => c.id === cart.customerId),
+    });
+
+    if (!queueOrder(payload)) {
+      toast('This device is out of storage — write the order down and free up space.', 'error');
+      return false;
+    }
+
+    refreshPending();
+    setShowPayment(false);
+    setReceiptOrder(receipt);
+    cartApi.clear();
+    toast('Saved offline — it will upload automatically when the internet is back', 'info');
+    return true;
   };
 
   const submitOrder = async (payments) => {
     setSubmitting(true);
     try {
+      if (!online) {
+        storeOfflineOrder(payments);
+        return;
+      }
+
       const { data } = await orderApi.create({
         customer_id: cart.customerId || null,
         order_type: cart.orderType,
@@ -110,21 +196,31 @@ export default function POS() {
       cartApi.clear();
       toast(`Order ${data.data.order_number} placed — sent to kitchen`);
     } catch (err) {
-      toast(err.response?.data?.message || 'Failed to place order', 'error');
+      // A connection that dropped mid-sale must never lose the order.
+      if (!err.response) {
+        storeOfflineOrder(payments);
+      } else {
+        toast(err.response?.data?.message || 'Failed to place order', 'error');
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-  const customerOptions = useMemo(
-    () => customers.filter((c) => !c.is_walk_in),
-    [customers]
-  );
+  const customerOptions = useMemo(() => customers.filter((c) => !c.is_walk_in), [customers]);
 
   return (
     <div className="flex h-full flex-col lg:flex-row">
       {/* Catalog side */}
       <div className="flex min-h-0 flex-1 flex-col">
+        {!online && (
+          <div className="flex items-center gap-2 bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-800">
+            <span>📴</span>
+            {catalogMissing
+              ? 'Offline and no saved menu on this device — connect once to download it.'
+              : 'Offline mode — orders are saved here and upload automatically when you reconnect.'}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white p-3">
           <div className="relative min-w-[180px] flex-1">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
@@ -163,7 +259,11 @@ export default function POS() {
         </div>
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
           <CategorySidebar categories={categories} activeId={categoryId} onSelect={setCategoryId} />
-          {prodLoading ? <Spinner className="flex-1" /> : <ProductGrid products={products} onPick={pickProduct} />}
+          {prodLoading && online && !usingCache ? (
+            <Spinner className="flex-1" />
+          ) : (
+            <ProductGrid products={products} onPick={pickProduct} />
+          )}
         </div>
       </div>
 
@@ -181,6 +281,7 @@ export default function POS() {
             setQty={cartApi.setQty}
             removeItem={cartApi.removeItem}
             taxName={`${settings.tax_name} (${taxRate}%)`}
+            showTax={taxRate > 0}
             onDiscount={() => setShowDiscount(true)}
             onHold={holdOrder}
             onShowHeld={() => setShowHeld(true)}
@@ -196,7 +297,8 @@ export default function POS() {
         onClick={() => setShowCartMobile(true)}
         className="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-full bg-orange-600 px-5 py-3 font-bold text-white shadow-lg lg:hidden"
       >
-        🛒 {totals.itemCount} · {settings.currency_symbol}{totals.total.toFixed(2)}
+        🛒 {totals.itemCount} · {settings.currency_symbol}
+        {totals.total.toLocaleString('en-US', { maximumFractionDigits: 0 })}
       </button>
 
       <VariantModal
@@ -223,6 +325,7 @@ export default function POS() {
         total={totals.total}
         onConfirm={submitOrder}
         submitting={submitting}
+        offline={!online}
       />
       <HeldOrdersModal
         open={showHeld}

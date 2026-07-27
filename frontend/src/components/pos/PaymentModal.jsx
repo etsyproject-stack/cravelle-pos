@@ -15,7 +15,7 @@ export const PAYMENT_METHODS = [
  * Take payment for the order total. Supports a single payment method or a
  * split bill: multiple payment lines that must sum to the total.
  */
-export default function PaymentModal({ open, onClose, total, onConfirm, submitting }) {
+export default function PaymentModal({ open, onClose, total, onConfirm, submitting, offline = false }) {
   const { formatMoney } = useSettings();
   const [split, setSplit] = useState(false);
   const [method, setMethod] = useState('cash');
@@ -77,6 +77,11 @@ export default function PaymentModal({ open, onClose, total, onConfirm, submitti
       }
     >
       <div className="space-y-4">
+        {offline && (
+          <div className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+            📴 Offline — this sale is saved on the till and uploads automatically once you reconnect.
+          </div>
+        )}
         <div className="flex rounded-lg bg-slate-100 p-1">
           <button
             onClick={() => setSplit(false)}

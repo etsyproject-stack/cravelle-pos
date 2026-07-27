@@ -27,7 +27,12 @@ export default function Login() {
       const logged = await login(email, password);
       navigate(logged.role === 'kitchen' ? '/kitchen' : '/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Check your credentials.');
+      setError(
+        err.response?.data?.message ||
+          (err.request
+            ? 'No connection to the server. You need to be online to sign in — after that the POS keeps working offline.'
+            : 'Login failed. Check your credentials.')
+      );
     }
   };
 

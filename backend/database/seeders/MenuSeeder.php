@@ -8,129 +8,164 @@ use App\Models\Product;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
+/**
+ * The live Cravelle 2.0 menu (prices in PKR).
+ *
+ * Cost prices are intentionally left at 0 — fill them in per product on the
+ * Products screen so the Profit report reflects your real margins.
+ */
 class MenuSeeder extends Seeder
 {
     public function run(): void
     {
         $addons = collect([
-            ['name' => 'Extra Cheese', 'price' => 0.99],
-            ['name' => 'Extra Sauce', 'price' => 0.49],
-            ['name' => 'Bacon', 'price' => 1.49],
-            ['name' => 'Jalapeños', 'price' => 0.79],
-            ['name' => 'Extra Patty', 'price' => 2.49],
-            ['name' => 'Garlic Dip', 'price' => 0.59],
+            ['name' => 'Cheese Slice', 'price' => 120],
+            ['name' => 'Pickle Vegies', 'price' => 120],
+            ['name' => 'Garlic Mayo Sauce', 'price' => 100],
+            ['name' => 'Dynamite Sauce', 'price' => 100],
+            ['name' => 'Chipotle Sauce', 'price' => 100],
+            ['name' => 'Extra Cheese (Small)', 'price' => 100],
+            ['name' => 'Extra Cheese (Medium)', 'price' => 150],
+            ['name' => 'Extra Cheese (Large)', 'price' => 250],
+            ['name' => 'Extra Chicken (Small)', 'price' => 100],
+            ['name' => 'Extra Chicken (Medium)', 'price' => 150],
+            ['name' => 'Extra Chicken (Large)', 'price' => 250],
         ])->map(fn (array $addon) => Addon::query()->updateOrCreate(
             ['name' => $addon['name']],
-            $addon
+            [...$addon, 'is_active' => true]
         ));
 
-        $foodAddons = fn (array $names) => $addons->whereIn('name', $names)->pluck('id')->all();
+        $ids = fn (array $names) => $addons->whereIn('name', $names)->pluck('id')->all();
+
+        $handheldAddons = ['Cheese Slice', 'Pickle Vegies', 'Garlic Mayo Sauce', 'Dynamite Sauce', 'Chipotle Sauce'];
+        $pizzaAddons = [
+            'Extra Cheese (Small)', 'Extra Cheese (Medium)', 'Extra Cheese (Large)',
+            'Extra Chicken (Small)', 'Extra Chicken (Medium)', 'Extra Chicken (Large)',
+        ];
+        $dipAddons = ['Garlic Mayo Sauce', 'Dynamite Sauce', 'Chipotle Sauce'];
 
         $menu = [
             [
-                'category' => ['name' => 'Burgers', 'icon' => '🍔', 'sort_order' => 1],
+                'category' => ['name' => 'Starters', 'icon' => '🍗', 'sort_order' => 1],
                 'products' => [
-                    ['name' => 'Classic Beef Burger', 'price' => 5.99, 'cost' => 2.20, 'image' => '🍔',
-                        'variants' => [['Single', 5.99], ['Double', 7.99], ['Triple', 9.99]],
-                        'addons' => ['Extra Cheese', 'Bacon', 'Jalapeños', 'Extra Patty']],
-                    ['name' => 'Crispy Chicken Burger', 'price' => 5.49, 'cost' => 2.00, 'image' => '🍔',
-                        'variants' => [['Regular', 5.49], ['Spicy', 5.99]],
-                        'addons' => ['Extra Cheese', 'Jalapeños', 'Extra Sauce']],
-                    ['name' => 'Veggie Burger', 'price' => 4.99, 'cost' => 1.60, 'image' => '🍔',
-                        'addons' => ['Extra Cheese', 'Extra Sauce']],
+                    ['name' => 'Chicken Tenders', 'price' => 450, 'image' => '🍗', 'addons' => $dipAddons,
+                        'variants' => [['Small 6 Pcs', 450], ['Large 12 Pcs', 950]]],
+                    ['name' => 'Red Dragon Wings', 'price' => 750, 'image' => '🔥', 'addons' => $dipAddons,
+                        'variants' => [['6 Pcs', 750], ['12 Pcs', 1400]]],
+                    ['name' => 'Plain Wings', 'price' => 650, 'image' => '🍗', 'addons' => $dipAddons,
+                        'variants' => [['6 Pcs', 650], ['12 Pcs', 1250]]],
+                    ['name' => 'Nuggets', 'price' => 300, 'image' => '🍗', 'addons' => $dipAddons,
+                        'variants' => [['Small 6 Pcs', 300], ['Large 12 Pcs', 650]]],
                 ],
             ],
             [
-                'category' => ['name' => 'Wraps', 'icon' => '🌯', 'sort_order' => 2],
+                'category' => ['name' => 'Burgers', 'icon' => '🍔', 'sort_order' => 2],
                 'products' => [
-                    ['name' => 'Grilled Chicken Wrap', 'price' => 5.49, 'cost' => 2.10, 'image' => '🌯',
-                        'addons' => ['Extra Sauce', 'Jalapeños', 'Extra Cheese']],
-                    ['name' => 'Zinger Wrap', 'price' => 5.99, 'cost' => 2.30, 'image' => '🌯',
-                        'addons' => ['Extra Sauce', 'Jalapeños']],
-                    ['name' => 'Falafel Wrap', 'price' => 4.79, 'cost' => 1.50, 'image' => '🌯',
-                        'addons' => ['Garlic Dip', 'Extra Sauce']],
+                    ['name' => 'Crispo Burger', 'price' => 650, 'image' => '🍔', 'addons' => $handheldAddons,
+                        'description' => 'Crispy thigh fillet with garlic mayo and chipotle sauce'],
+                    ['name' => 'Grill Burger', 'price' => 650, 'image' => '🍔', 'addons' => $handheldAddons,
+                        'description' => 'Juicy grilled breast with garlic mayo and dynamite sauce'],
+                    ['name' => 'Red Dragon Burger', 'price' => 750, 'image' => '🔥', 'addons' => $handheldAddons,
+                        'description' => 'Crispy fillet coated with red dragon korean sauce and spicy mayo'],
+                    ['name' => 'Burger of Your Choice', 'price' => 800, 'image' => '🍔', 'addons' => $handheldAddons,
+                        'description' => 'Crispy thigh fillet, sauce of your choice'],
                 ],
             ],
             [
-                'category' => ['name' => 'Pizza', 'icon' => '🍕', 'sort_order' => 3],
+                'category' => ['name' => 'Wraps', 'icon' => '🌯', 'sort_order' => 3],
                 'products' => [
-                    ['name' => 'Margherita Pizza', 'price' => 7.99, 'cost' => 3.00, 'image' => '🍕',
-                        'variants' => [['Small', 7.99], ['Medium', 10.99], ['Large', 13.99]],
-                        'addons' => ['Extra Cheese', 'Jalapeños']],
-                    ['name' => 'Pepperoni Pizza', 'price' => 8.99, 'cost' => 3.50, 'image' => '🍕',
-                        'variants' => [['Small', 8.99], ['Medium', 11.99], ['Large', 14.99]],
-                        'addons' => ['Extra Cheese', 'Jalapeños']],
-                    ['name' => 'BBQ Chicken Pizza', 'price' => 9.49, 'cost' => 3.80, 'image' => '🍕',
-                        'variants' => [['Small', 9.49], ['Medium', 12.49], ['Large', 15.49]],
-                        'addons' => ['Extra Cheese', 'Extra Sauce']],
+                    ['name' => 'Cravellé Special Wrap', 'price' => 750, 'image' => '🌯', 'addons' => $handheldAddons,
+                        'description' => 'Grilled chicken, fries with salad and three different sauces'],
+                    ['name' => 'Crispo Wrap', 'price' => 700, 'image' => '🌯', 'addons' => $handheldAddons,
+                        'description' => 'Crispy chicken with salad, garlic mayo and chipotle sauce'],
+                    ['name' => 'Red Dragon Wrap', 'price' => 750, 'image' => '🔥', 'addons' => $handheldAddons,
+                        'description' => 'Crispy chicken coated with red dragon korean sauce, fries, salad and spicy mayo'],
+                    ['name' => 'Tex-Mex Wrap', 'price' => 700, 'image' => '🌯', 'addons' => $handheldAddons,
+                        'description' => 'Grilled chicken, fries with salad and garlic mayo sauce'],
+                    ['name' => 'Wrap of Your Choice', 'price' => 800, 'image' => '🌯', 'addons' => $handheldAddons,
+                        'description' => 'Grilled chicken, fries with sauces of your choice'],
                 ],
             ],
             [
-                'category' => ['name' => 'Fries', 'icon' => '🍟', 'sort_order' => 4],
+                'category' => ['name' => 'Sandwiches', 'icon' => '🥪', 'sort_order' => 4],
                 'products' => [
-                    ['name' => 'French Fries', 'price' => 2.49, 'cost' => 0.70, 'image' => '🍟',
-                        'variants' => [['Small', 2.49], ['Medium', 2.99], ['Large', 3.49]],
-                        'addons' => ['Extra Cheese', 'Garlic Dip']],
-                    ['name' => 'Curly Fries', 'price' => 2.99, 'cost' => 0.90, 'image' => '🍟',
-                        'addons' => ['Extra Cheese', 'Garlic Dip']],
-                    ['name' => 'Loaded Cheese Fries', 'price' => 4.49, 'cost' => 1.50, 'image' => '🍟',
-                        'addons' => ['Bacon', 'Jalapeños']],
+                    ['name' => 'Crispo Sandwich', 'price' => 850, 'image' => '🥪', 'addons' => $handheldAddons,
+                        'description' => 'Fried chicken, ice berg, cucumber, tomato, jalapeños, cheese slice, chipotle sauce and garlic mayo sauce'],
+                    ['name' => 'Club Sandwich', 'price' => 800, 'image' => '🥪', 'addons' => $handheldAddons,
+                        'description' => 'Grilled chicken, fried egg, tomato, cucumber, cheese slice, dynamite sauce, garlic mayo sauce'],
+                    ['name' => 'Royal Club Sandwich', 'price' => 850, 'image' => '🥪', 'addons' => $handheldAddons,
+                        'description' => 'Grilled chicken cooked in capsicum, onion, jalapeños and ketchup, fried egg, cucumber, tomato with garlic mayo and chipotle sauce'],
+                    ['name' => 'Sandwich of Your Choice', 'price' => 700, 'image' => '🥪', 'addons' => $handheldAddons,
+                        'description' => 'Grilled chicken, fries with salad and garlic mayo sauce'],
                 ],
             ],
             [
-                'category' => ['name' => 'Nuggets', 'icon' => '🍗', 'sort_order' => 5],
+                'category' => ['name' => 'Pizza', 'icon' => '🍕', 'sort_order' => 5],
                 'products' => [
-                    ['name' => 'Chicken Nuggets', 'price' => 3.99, 'cost' => 1.40, 'image' => '🍗',
-                        'variants' => [['6 pcs', 3.99], ['9 pcs', 5.49], ['12 pcs', 6.99]],
-                        'addons' => ['Garlic Dip', 'Extra Sauce']],
-                    ['name' => 'Spicy Nuggets', 'price' => 4.29, 'cost' => 1.50, 'image' => '🍗',
-                        'variants' => [['6 pcs', 4.29], ['9 pcs', 5.79]],
-                        'addons' => ['Garlic Dip', 'Extra Sauce']],
+                    ['name' => 'Cravellé Special Pizza', 'price' => 750, 'image' => '🍕', 'addons' => $pizzaAddons,
+                        'description' => 'Two chicken toppings, capsicum, onions, jalapeños, olives and mushrooms',
+                        'variants' => [['Small', 750], ['Medium', 1100], ['Large', 1600]]],
+                    ['name' => 'Cravo Supreme Pizza', 'price' => 700, 'image' => '🍕', 'addons' => $pizzaAddons,
+                        'description' => 'Tikka topping, onion and mushrooms',
+                        'variants' => [['Small', 700], ['Medium', 1050], ['Large', 1500]]],
+                    ['name' => 'Flame House Fajita Pizza', 'price' => 750, 'image' => '🍕', 'addons' => $pizzaAddons,
+                        'description' => 'Tandoori topping, mushrooms, capsicum, olives, onions, jalapeños and sweet corn',
+                        'variants' => [['Small', 750], ['Medium', 1100], ['Large', 1600]]],
+                    ['name' => 'Cravo Creamy Pizza', 'price' => 700, 'image' => '🍕', 'addons' => $pizzaAddons,
+                        'description' => 'Malai boti topping, onion and capsicum',
+                        'variants' => [['Small', 700], ['Medium', 1050], ['Large', 1500]]],
+                    ['name' => 'Extreme Peri Peri Pizza', 'price' => 800, 'image' => '🌶️', 'addons' => $pizzaAddons,
+                        'description' => 'Jalapeños, spicy chicken topping, capsicum, onion, tomatoes, cheese',
+                        'variants' => [['Small', 800], ['Medium', 1400], ['Large', 2000]]],
+                    ['name' => 'Extreme Crispo Pizza', 'price' => 800, 'image' => '🍕', 'addons' => $pizzaAddons,
+                        'description' => 'Jalapeños, crispy chicken topping, capsicum, onion, tomatoes, cheese',
+                        'variants' => [['Small', 800], ['Medium', 1400], ['Large', 2000]]],
                 ],
             ],
             [
-                'category' => ['name' => 'Shawarma', 'icon' => '🥙', 'sort_order' => 6],
+                'category' => ['name' => 'Fries', 'icon' => '🍟', 'sort_order' => 6],
                 'products' => [
-                    ['name' => 'Chicken Shawarma', 'price' => 4.99, 'cost' => 1.80, 'image' => '🥙',
-                        'variants' => [['Regular', 4.99], ['Large', 6.49]],
-                        'addons' => ['Garlic Dip', 'Extra Sauce', 'Jalapeños']],
-                    ['name' => 'Beef Shawarma', 'price' => 5.49, 'cost' => 2.10, 'image' => '🥙',
-                        'variants' => [['Regular', 5.49], ['Large', 6.99]],
-                        'addons' => ['Garlic Dip', 'Extra Sauce']],
-                    ['name' => 'Shawarma Platter', 'price' => 8.99, 'cost' => 3.40, 'image' => '🥙',
-                        'addons' => ['Garlic Dip', 'Extra Sauce']],
+                    ['name' => 'Plain Fries', 'price' => 150, 'image' => '🍟', 'addons' => $dipAddons,
+                        'variants' => [['Small', 150], ['Large', 300]]],
+                    ['name' => 'Masala Fries', 'price' => 200, 'image' => '🍟', 'addons' => $dipAddons,
+                        'variants' => [['Small', 200], ['Large', 400]]],
+                    ['name' => 'Overloaded Fries', 'price' => 350, 'image' => '🍟', 'addons' => $dipAddons,
+                        'variants' => [['Small', 350], ['Large', 650]]],
                 ],
             ],
             [
-                'category' => ['name' => 'Drinks', 'icon' => '🥤', 'sort_order' => 7],
+                'category' => ['name' => 'Sauces', 'icon' => '🥫', 'sort_order' => 7],
                 'products' => [
-                    ['name' => 'Cola', 'price' => 1.49, 'cost' => 0.40, 'image' => '🥤',
-                        'variants' => [['Small', 1.49], ['Medium', 1.99], ['Large', 2.49]],
-                        'stock' => 200],
-                    ['name' => 'Lemon-Lime Soda', 'price' => 1.49, 'cost' => 0.40, 'image' => '🥤',
-                        'variants' => [['Small', 1.49], ['Medium', 1.99], ['Large', 2.49]],
-                        'stock' => 150],
-                    ['name' => 'Mineral Water', 'price' => 0.99, 'cost' => 0.25, 'image' => '💧', 'stock' => 300],
-                    ['name' => 'Iced Tea', 'price' => 1.79, 'cost' => 0.50, 'image' => '🧋', 'stock' => 80],
+                    ['name' => 'Garlic Mayo Sauce', 'price' => 100, 'image' => '🥫'],
+                    ['name' => 'Dynamite Sauce', 'price' => 100, 'image' => '🌶️'],
+                    ['name' => 'Chipotle Sauce', 'price' => 100, 'image' => '🥫'],
                 ],
             ],
             [
-                'category' => ['name' => 'Slush', 'icon' => '🧊', 'sort_order' => 8],
+                'category' => ['name' => 'Special Drinks', 'icon' => '🍹', 'sort_order' => 8],
                 'products' => [
-                    ['name' => 'Blue Raspberry Slush', 'price' => 2.49, 'cost' => 0.60, 'image' => '🧊',
-                        'variants' => [['Regular', 2.49], ['Large', 3.29]]],
-                    ['name' => 'Strawberry Slush', 'price' => 2.49, 'cost' => 0.60, 'image' => '🍓',
-                        'variants' => [['Regular', 2.49], ['Large', 3.29]]],
-                    ['name' => 'Mango Slush', 'price' => 2.69, 'cost' => 0.70, 'image' => '🥭',
-                        'variants' => [['Regular', 2.69], ['Large', 3.49]]],
+                    ['name' => 'Mint Margarita', 'price' => 300, 'image' => '🍹',
+                        'variants' => [['Small', 300], ['Large', 500]]],
+                    ['name' => 'Peach Iced Tea', 'price' => 300, 'image' => '🧋',
+                        'variants' => [['Small', 300], ['Large', 500]]],
+                    ['name' => 'Blue Lagoon', 'price' => 300, 'image' => '🥤',
+                        'variants' => [['Small', 300], ['Large', 500]]],
                 ],
             ],
             [
-                'category' => ['name' => 'Juices', 'icon' => '🧃', 'sort_order' => 9],
+                'category' => ['name' => 'Drinks', 'icon' => '🥤', 'sort_order' => 9],
                 'products' => [
-                    ['name' => 'Fresh Orange Juice', 'price' => 2.99, 'cost' => 1.00, 'image' => '🍊', 'stock' => 60],
-                    ['name' => 'Apple Juice', 'price' => 2.79, 'cost' => 0.90, 'image' => '🍎', 'stock' => 60],
-                    ['name' => 'Mango Juice', 'price' => 3.19, 'cost' => 1.10, 'image' => '🥭', 'stock' => 40],
+                    ['name' => 'Regular Drink', 'price' => 100, 'image' => '🥤', 'stock' => 120],
+                    ['name' => 'Half Litre Drink', 'price' => 150, 'image' => '🥤', 'stock' => 80],
+                    ['name' => '1.5 Litre Drink', 'price' => 240, 'image' => '🧃', 'stock' => 40],
+                    ['name' => 'Small Water', 'price' => 70, 'image' => '💧', 'stock' => 100],
+                ],
+            ],
+            [
+                'category' => ['name' => 'Desserts', 'icon' => '🍰', 'sort_order' => 10],
+                'products' => [
+                    ['name' => 'Molten Lava', 'price' => 850, 'image' => '🍫',
+                        'description' => 'Served with a scoop of vanilla ice cream'],
                 ],
             ],
         ];
@@ -138,7 +173,7 @@ class MenuSeeder extends Seeder
         foreach ($menu as $entry) {
             $category = Category::query()->updateOrCreate(
                 ['name' => $entry['category']['name']],
-                $entry['category']
+                [...$entry['category'], 'is_active' => true]
             );
 
             foreach ($entry['products'] as $item) {
@@ -147,9 +182,10 @@ class MenuSeeder extends Seeder
                     [
                         'category_id' => $category->id,
                         'sku' => Str::upper(Str::slug($item['name'], '-')),
+                        'description' => $item['description'] ?? null,
                         'image' => $item['image'],
                         'price' => $item['price'],
-                        'cost' => $item['cost'],
+                        'cost' => 0,
                         'track_stock' => isset($item['stock']),
                         'stock_qty' => $item['stock'] ?? 0,
                         'low_stock_threshold' => 20,
@@ -157,16 +193,16 @@ class MenuSeeder extends Seeder
                     ]
                 );
 
+                $keepVariantIds = [];
                 foreach ($item['variants'] ?? [] as $index => [$name, $price]) {
-                    $product->variants()->updateOrCreate(
+                    $keepVariantIds[] = $product->variants()->updateOrCreate(
                         ['name' => $name],
                         ['price' => $price, 'sort_order' => $index]
-                    );
+                    )->id;
                 }
+                $product->variants()->whereNotIn('id', $keepVariantIds)->delete();
 
-                if (! empty($item['addons'])) {
-                    $product->addons()->sync($foodAddons($item['addons']));
-                }
+                $product->addons()->sync($ids($item['addons'] ?? []));
             }
         }
     }

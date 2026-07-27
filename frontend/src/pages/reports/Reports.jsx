@@ -6,6 +6,7 @@ import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import StatCard from '../../components/ui/StatCard';
 import Spinner from '../../components/ui/Spinner';
+import OfflineNotice from '../../components/ui/OfflineNotice';
 
 const TABS = [
   { id: 'daily', label: 'Daily Sales' },
@@ -35,7 +36,7 @@ export default function Reports() {
   const [month, setMonth] = useState(thisMonth);
 
   const { formatMoney } = useSettings();
-  const { data, loading } = useApi(() => {
+  const { data, loading, error } = useApi(() => {
     if (tab === 'daily') return reportApi.daily({ date });
     if (tab === 'monthly') return reportApi.monthly({ month });
     if (tab === 'products') return reportApi.products({ month });
@@ -69,6 +70,8 @@ export default function Reports() {
 
       {loading ? (
         <Spinner />
+      ) : error && !data ? (
+        <OfflineNotice what="Reports" />
       ) : tab === 'daily' ? (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

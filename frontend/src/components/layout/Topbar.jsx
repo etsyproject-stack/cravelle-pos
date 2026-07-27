@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
+import ConnectionStatus from './ConnectionStatus';
 
 export default function Topbar({ onMenuToggle, title }) {
   const { logout } = useAuth();
@@ -26,8 +27,9 @@ export default function Topbar({ onMenuToggle, title }) {
         </button>
         <h1 className="text-lg font-bold text-slate-800">{title}</h1>
       </div>
-      <div className="flex items-center gap-3">
-        <span className="hidden text-sm text-slate-500 sm:block">{settings.restaurant_name}</span>
+      <div className="flex items-center gap-2 sm:gap-3">
+        <ConnectionStatus />
+        <span className="hidden text-sm text-slate-500 lg:block">{settings.restaurant_name}</span>
         <button
           onClick={handleLogout}
           className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100"

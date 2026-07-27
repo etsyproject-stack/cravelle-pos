@@ -5,6 +5,7 @@ namespace App\Repositories\Contracts;
 use App\Models\Order;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 
 interface OrderRepositoryInterface extends BaseRepositoryInterface
 {
@@ -15,7 +16,7 @@ interface OrderRepositoryInterface extends BaseRepositoryInterface
 
     public function recent(int $limit = 10): Collection;
 
-    public function nextOrderNumber(): string;
+    public function nextOrderNumber(?Carbon $date = null): string;
 
     public function loadFull(Order $order): Order;
 }

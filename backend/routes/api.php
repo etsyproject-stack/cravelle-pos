@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AddonController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BootstrapController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\CustomerController;
@@ -17,6 +18,9 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Cheap reachability probe the POS polls to tell online from offline.
+    Route::get('/ping', fn () => response()->json(['ok' => true]));
+
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -32,8 +36,12 @@ Route::prefix('v1')->group(function () {
             Route::get('/products/{product}', [ProductController::class, 'show']);
             Route::get('/addons', [AddonController::class, 'index']);
 
+            // Everything the till needs to keep selling while offline.
+            Route::get('/bootstrap', [BootstrapController::class, 'index']);
+
             Route::get('/orders', [OrderController::class, 'index']);
             Route::post('/orders', [OrderController::class, 'store']);
+            Route::post('/orders/sync', [OrderController::class, 'sync']);
             Route::get('/orders/{order}', [OrderController::class, 'show']);
             Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
             Route::post('/orders/{order}/payments', [OrderController::class, 'addPayment']);

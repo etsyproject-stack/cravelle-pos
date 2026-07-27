@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Repositories\Contracts\OrderRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 
 class OrderRepository extends BaseRepository implements OrderRepositoryInterface
 {
@@ -46,11 +47,21 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
             ->get();
     }
 
-    public function nextOrderNumber(): string
+    public function nextOrderNumber(?Carbon $date = null): string
     {
-        $todayCount = Order::query()->whereDate('created_at', today())->count() + 1;
+        $date ??= now();
+        $prefix = 'ORD-'.$date->format('Ymd').'-';
 
-        return sprintf('ORD-%s-%04d', now()->format('Ymd'), $todayCount);
+        // Take the highest sequence already issued for that day rather than a
+        // row count, so cancelled or deleted orders never reissue a number.
+        $lastNumber = Order::query()
+            ->where('order_number', 'like', $prefix.'%')
+            ->orderByDesc('order_number')
+            ->value('order_number');
+
+        $next = $lastNumber ? ((int) substr($lastNumber, -4)) + 1 : 1;
+
+        return $prefix.sprintf('%04d', $next);
     }
 
     public function loadFull(Order $order): Order

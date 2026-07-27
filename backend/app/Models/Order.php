@@ -14,6 +14,8 @@ class Order extends Model
 {
     protected $fillable = [
         'order_number',
+        'client_uuid',
+        'placed_offline',
         'kot_number',
         'user_id',
         'customer_id',
@@ -48,6 +50,7 @@ class Order extends Model
             'tax' => 'decimal:2',
             'total' => 'decimal:2',
             'loyalty_points_earned' => 'integer',
+            'placed_offline' => 'boolean',
             'completed_at' => 'datetime',
         ];
     }

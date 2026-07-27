@@ -4,10 +4,13 @@ import Button from '../ui/Button';
 import { Input, Select } from '../ui/Input';
 import { couponApi } from '../../api';
 import { useToast } from '../../context/ToastContext';
+import { useOffline } from '../../context/OfflineContext';
+import { validateCouponOffline } from '../../offline/orderBuilder';
 
 /** Order-level discount: manual (percent/fixed) and/or a coupon code. */
 export default function DiscountModal({ open, onClose, cart, subtotal, setDiscount, setCoupon }) {
   const { toast } = useToast();
+  const { online, catalog } = useOffline();
   const [type, setType] = useState(cart.discountType);
   const [value, setValue] = useState(cart.discountValue);
   const [code, setCode] = useState(cart.coupon?.code || '');
@@ -20,11 +23,18 @@ export default function DiscountModal({ open, onClose, cart, subtotal, setDiscou
     }
     setChecking(true);
     try {
+      if (!online) {
+        // Check against the coupon list saved for offline use.
+        const coupon = validateCouponOffline(catalog?.coupons, code, subtotal);
+        setCoupon(coupon);
+        toast(`Coupon ${coupon.code} applied`);
+        return;
+      }
       const { data } = await couponApi.validate(code.trim(), subtotal);
       setCoupon(data.data);
       toast(`Coupon ${data.data.code} applied`);
     } catch (err) {
-      toast(err.response?.data?.message || 'Invalid coupon', 'error');
+      toast(err.response?.data?.message || err.message || 'Invalid coupon', 'error');
     } finally {
       setChecking(false);
     }

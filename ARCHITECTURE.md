@@ -108,6 +108,33 @@ status; POS/Orders pages see everything.
 | Coupons   | CRUD /coupons, POST /coupons/validate                            |
 | Settings  | GET/PUT /settings                                                |
 
+## Offline-first design
+
+The till must never stop trading because a link went down.
+
+```
+online   POS ──► /api/v1/orders ──────────────► DB
+         POS ◄── /api/v1/bootstrap (catalog snapshot, cached locally)
+
+offline  POS ──► localStorage queue (client_uuid + placed_at + receipt)
+reconnect    ──► /api/v1/orders/sync (batch) ──► DB
+```
+
+- **Reachability** is measured by polling `/api/v1/ping` every 20s, not by
+  `navigator.onLine`, which only reports link state.
+- **`client_uuid`** is generated on the till and carries a unique index in
+  `orders`. Replaying a batch after a half-finished upload returns the
+  original order instead of billing twice.
+- **`placed_at`** backdates the order, its items and its payments to the
+  moment of sale, so daily/hourly reports stay truthful after a late sync.
+- **Stock** is enforced online; a synced offline order records the sale and
+  floors stock at zero, because the food already left the counter.
+- **Per-order isolation** in the sync batch: one bad order is reported in
+  `failed[]` and never blocks the rest.
+- Assets are precached by a Workbox service worker (`vite-plugin-pwa`); API
+  calls are `NetworkOnly` so the POS — not the cache — decides what stale
+  data is acceptable.
+
 ## Roles & Permissions
 
 | Role    | Access                                                          |

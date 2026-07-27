@@ -16,6 +16,7 @@ class SettingController extends Controller
         'restaurant_phone',
         'currency_symbol',
         'currency_code',
+        'currency_decimals',
         'tax_rate',
         'tax_name',
         'timezone',

@@ -1,25 +1,28 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { settingsApi } from '../api';
 import { useAuth } from './AuthContext';
+import { useOffline } from './OfflineContext';
 
 const DEFAULTS = {
-  restaurant_name: 'Cravelle Fast Food',
+  restaurant_name: 'Cravelle 2.0',
   restaurant_address: '',
   restaurant_phone: '',
-  currency_symbol: '$',
-  currency_code: 'USD',
-  tax_rate: '10',
-  tax_name: 'VAT',
-  timezone: 'UTC',
+  currency_symbol: 'Rs ',
+  currency_code: 'PKR',
+  currency_decimals: '0',
+  tax_rate: '0',
+  tax_name: 'GST',
+  timezone: 'Asia/Karachi',
   receipt_footer: 'Thank you for your order!',
   receipt_printer: 'Default Printer',
-  loyalty_earn_rate: '1',
+  loyalty_earn_rate: '0.01',
 };
 
 const SettingsContext = createContext(null);
 
 export function SettingsProvider({ children }) {
   const { user } = useAuth();
+  const { catalog } = useOffline();
   const [settings, setSettings] = useState(DEFAULTS);
 
   const refresh = useCallback(async () => {
@@ -27,18 +30,26 @@ export function SettingsProvider({ children }) {
       const { data } = await settingsApi.get();
       setSettings({ ...DEFAULTS, ...data.data });
     } catch {
-      // keep defaults if settings are unavailable
+      // No connection: fall back to the settings cached for offline use.
+      const cached = catalog?.settings;
+      if (cached) setSettings({ ...DEFAULTS, ...cached });
     }
-  }, []);
+  }, [catalog]);
 
   useEffect(() => {
     if (user) refresh();
   }, [user, refresh]);
 
   const formatMoney = useCallback(
-    (amount) =>
-      `${settings.currency_symbol}${Number(amount ?? 0).toFixed(2)}`,
-    [settings.currency_symbol]
+    (amount) => {
+      const decimals = Number(settings.currency_decimals ?? 0);
+      const value = Number(amount ?? 0).toLocaleString('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      });
+      return `${settings.currency_symbol}${value}`;
+    },
+    [settings.currency_symbol, settings.currency_decimals]
   );
 
   return (

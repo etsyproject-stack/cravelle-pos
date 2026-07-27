@@ -5,13 +5,15 @@ import StatCard from '../../components/ui/StatCard';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Spinner from '../../components/ui/Spinner';
+import OfflineNotice from '../../components/ui/OfflineNotice';
 import { StatusBadge } from '../../components/ui/Badge';
 
 export default function Dashboard() {
-  const { data, loading } = useApi(() => dashboardApi.stats());
+  const { data, loading, error } = useApi(() => dashboardApi.stats());
   const { formatMoney } = useSettings();
 
   if (loading) return <Spinner />;
+  if (error && !data) return <OfflineNotice what="The dashboard" />;
   const stats = data?.data || {};
 
   return (
