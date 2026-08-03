@@ -8,7 +8,7 @@ const MAX_ATTEMPTS = 5;
  * Is the server actually reachable? `navigator.onLine` only knows whether a
  * network cable/wifi exists, so we ask the API itself.
  */
-export async function pingApi(timeoutMs = 5000) {
+export async function pingApi(timeoutMs = 12000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
