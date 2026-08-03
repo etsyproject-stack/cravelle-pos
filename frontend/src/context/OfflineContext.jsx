@@ -9,6 +9,16 @@ const OfflineContext = createContext(null);
 const PING_INTERVAL_MS = 20000;
 const CATALOG_REFRESH_MS = 5 * 60 * 1000;
 
+/**
+ * Windows serves the API through PHP's built-in server, which answers one
+ * request at a time. A health check can sit behind a page load for several
+ * seconds without the till being down, so allow generously for it and only
+ * declare an outage once two checks in a row have failed. Recovery is
+ * immediate — one good answer is enough.
+ */
+const PING_TIMEOUT_MS = 12000;
+const FAILURES_BEFORE_OFFLINE = 2;
+
 export function OfflineProvider({ children }) {
   const { user } = useAuth();
   const [online, setOnline] = useState(navigator.onLine);
@@ -17,6 +27,7 @@ export function OfflineProvider({ children }) {
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState(null);
   const syncingRef = useRef(false);
+  const failuresRef = useRef(0);
 
   const refreshPending = useCallback(() => setPending(queuedOrders().length), []);
 
@@ -55,15 +66,32 @@ export function OfflineProvider({ children }) {
     let cancelled = false;
 
     const check = async () => {
-      const reachable = navigator.onLine ? await pingApi() : false;
-      if (!cancelled) setOnline(reachable);
+      if (!navigator.onLine) {
+        failuresRef.current = FAILURES_BEFORE_OFFLINE;
+        if (!cancelled) setOnline(false);
+        return false;
+      }
+
+      const reachable = await pingApi(PING_TIMEOUT_MS);
+      if (cancelled) return reachable;
+
+      if (reachable) {
+        failuresRef.current = 0;
+        setOnline(true);
+      } else {
+        failuresRef.current += 1;
+        if (failuresRef.current >= FAILURES_BEFORE_OFFLINE) setOnline(false);
+      }
       return reachable;
     };
 
     check();
     const timer = setInterval(check, PING_INTERVAL_MS);
     const onBrowserOnline = () => check();
-    const onBrowserOffline = () => setOnline(false);
+    const onBrowserOffline = () => {
+      failuresRef.current = FAILURES_BEFORE_OFFLINE;
+      setOnline(false);
+    };
 
     window.addEventListener('online', onBrowserOnline);
     window.addEventListener('offline', onBrowserOffline);
