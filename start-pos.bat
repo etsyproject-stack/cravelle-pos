@@ -4,6 +4,34 @@ echo.
 echo   Starting Cravelle POS...
 echo.
 
+rem PHP and Node live inside Laragon and are not on the Windows PATH, so a
+rem plain cmd window cannot see them. Prefer whatever is installed system-wide
+rem and fall back to the copies Laragon ships.
+where php >nul 2>&1
+if errorlevel 1 (
+  for /d %%D in ("C:\laragon\bin\php\php-*") do set "PATH=%%D;%PATH%"
+)
+
+where npm >nul 2>&1
+if errorlevel 1 (
+  for /d %%D in ("C:\laragon\bin\nodejs\node-*") do set "PATH=%%D;%PATH%"
+)
+
+where php >nul 2>&1
+if errorlevel 1 (
+  echo   PHP was not found. Start Laragon once, or install PHP, then try again.
+  pause
+  exit
+)
+
+where npm >nul 2>&1
+if errorlevel 1 (
+  echo   Node.js was not found. Install it from nodejs.org, restart Windows,
+  echo   then try again.
+  pause
+  exit
+)
+
 rem Start the Laravel backend in its own window
 start "Cravelle POS - Backend (do not close)" cmd /k "cd /d %~dp0backend && php artisan serve"
 
