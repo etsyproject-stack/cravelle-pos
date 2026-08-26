@@ -16,17 +16,23 @@ const PRINT_ROOT_ID = 'receipt-print-root';
 const PAGE_STYLE_ID = 'receipt-page-size';
 
 /**
- * How much of the roll the print head actually covers, in mm.
- *
- * A till roll is wider than its printable strip — a 58mm printer lays down
- * 48mm and a 80mm one 72mm, the rest being the margin the paper path needs.
- * Laying the receipt out to the full paper width pushes the right-hand column
- * (the prices) off the edge, so every measurement here uses the printable
- * width, not the roll width.
+ * How much of the roll the print head actually covers, in mm. A till roll is
+ * wider than its printable strip: a 58mm printer lays down 48mm, an 80mm one
+ * 72mm, the rest being margin the paper path needs.
  */
 const PRINTABLE_MM = { 58: 48, 80: 72 };
 
-const printableWidth = (rollMm) => PRINTABLE_MM[rollMm] ?? rollMm - 10;
+/** Held back from the printable strip so nothing rides the right-hand edge. */
+const SAFETY_MM = 2;
+
+/**
+ * The page is declared at the full roll width even though the receipt is
+ * narrower. Chrome stretches an undersized page out to fill the sheet — a
+ * 48mm page on 58mm paper comes out 1.2x too wide and the price column falls
+ * off the print head. Matching the paper leaves it nothing to scale, and the
+ * receipt is inset with margins instead.
+ */
+const contentWidth = (rollMm) => (PRINTABLE_MM[rollMm] ?? rollMm - 10) - SAFETY_MM;
 
 /**
  * Lift a copy of the receipt out of the app for printing.
@@ -41,7 +47,7 @@ const printableWidth = (rollMm) => PRINTABLE_MM[rollMm] ?? rollMm - 10;
  * Chrome rejects `size: <length> auto` — so the height is measured off the
  * receipt and written out as a number.
  */
-function openPrintRoot(widthMm) {
+function openPrintRoot(rollMm) {
   const receipt = document.getElementById('receipt-print');
   if (!receipt || document.getElementById(PRINT_ROOT_ID)) return;
 
@@ -53,7 +59,7 @@ function openPrintRoot(widthMm) {
     style.id = PAGE_STYLE_ID;
     document.head.appendChild(style);
   }
-  style.textContent = `@page { size: ${widthMm}mm ${heightMm}mm; margin: 0; }`;
+  style.textContent = `@page { size: ${rollMm}mm ${heightMm}mm; margin: 0; }`;
 
   // A copy, not the node itself — React still owns the original and would
   // lose track of it if we moved it.
@@ -73,13 +79,14 @@ function closePrintRoot() {
 /** Printable till receipt, also used to reprint from the Orders page. */
 export default function ReceiptModal({ order, onClose }) {
   const { settings, formatMoney } = useSettings();
-  const widthMm = printableWidth(Number(settings.receipt_width) || 58);
+  const rollMm = Number(settings.receipt_width) || 58;
+  const widthMm = contentWidth(rollMm);
 
   // Hooked to the browser's own print events so Ctrl+P behaves like the button.
   useEffect(() => {
     if (!order) return undefined;
 
-    const before = () => openPrintRoot(widthMm);
+    const before = () => openPrintRoot(rollMm);
     window.addEventListener('beforeprint', before);
     window.addEventListener('afterprint', closePrintRoot);
 
@@ -88,7 +95,7 @@ export default function ReceiptModal({ order, onClose }) {
       window.removeEventListener('afterprint', closePrintRoot);
       closePrintRoot();
     };
-  }, [order, widthMm]);
+  }, [order, rollMm]);
 
   if (!order) return null;
 
