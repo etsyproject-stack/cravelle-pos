@@ -35,14 +35,23 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 9pt;
   line-height: 1.35;
-  /* 5mm of side padding keeps text inside the printable area of the roll. */
-  padding: 3mm 5mm;
+  /* The element is already sized to the printable strip, so keep the side
+     padding token — every millimetre here is one the item names lose. */
+  padding: 3mm 1.5mm;
   color: #000;
   background: #fff;
 }
 
 .receipt-paper .receipt-title { font-size: 12pt; }
 .receipt-paper .receipt-total { font-size: 11pt; }
+
+/* The right-hand column is money: let the item name wrap instead, and never
+   let a long name squeeze or break the amount. */
+.receipt-paper .justify-between > span:last-child {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding-left: 2mm;
+}
 
 /* ReceiptModal parks a copy of the receipt here while printing. Off-screen
    rather than display:none, so it can still be measured. */

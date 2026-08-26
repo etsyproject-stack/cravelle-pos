@@ -16,6 +16,19 @@ const PRINT_ROOT_ID = 'receipt-print-root';
 const PAGE_STYLE_ID = 'receipt-page-size';
 
 /**
+ * How much of the roll the print head actually covers, in mm.
+ *
+ * A till roll is wider than its printable strip — a 58mm printer lays down
+ * 48mm and a 80mm one 72mm, the rest being the margin the paper path needs.
+ * Laying the receipt out to the full paper width pushes the right-hand column
+ * (the prices) off the edge, so every measurement here uses the printable
+ * width, not the roll width.
+ */
+const PRINTABLE_MM = { 58: 48, 80: 72 };
+
+const printableWidth = (rollMm) => PRINTABLE_MM[rollMm] ?? rollMm - 10;
+
+/**
  * Lift a copy of the receipt out of the app for printing.
  *
  * Hiding the rest of the page is not enough: hidden elements still take up
@@ -60,7 +73,7 @@ function closePrintRoot() {
 /** Printable till receipt, also used to reprint from the Orders page. */
 export default function ReceiptModal({ order, onClose }) {
   const { settings, formatMoney } = useSettings();
-  const widthMm = Number(settings.receipt_width) || 58;
+  const widthMm = printableWidth(Number(settings.receipt_width) || 58);
 
   // Hooked to the browser's own print events so Ctrl+P behaves like the button.
   useEffect(() => {
