@@ -17,17 +17,45 @@ body {
 .thin-scroll::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
 .thin-scroll::-webkit-scrollbar-track { background: transparent; }
 
-/* Receipt print styles */
+/* Receipt print styles — 80mm thermal roll.
+   Without a @page rule the browser lays the receipt out on A4 and the printer
+   shrinks the sheet to fit the roll, which is what makes the text tiny and
+   leaves most of the paper blank. Declaring the page as 80mm wide prints at
+   1:1. The two @page rules are deliberate: browsers that reject `auto` as a
+   height keep the first, the rest use the second and stop at the last line. */
+@page { size: 80mm 297mm; margin: 0; }
+@page { size: 80mm auto; margin: 0; }
+
 @media print {
+  html, body {
+    height: auto;
+    background: #fff;
+  }
+
   body * { visibility: hidden; }
   #receipt-print, #receipt-print * { visibility: visible; }
+
   #receipt-print {
     position: absolute;
     left: 0;
     top: 0;
-    width: 80mm;
-    font-family: "Courier New", monospace;
-    font-size: 12px;
-    color: #000;
+    /* 80mm paper prints on ~72mm; the padding keeps text off the edges. */
+    width: 72mm;
+    max-width: 72mm;
+    padding: 3mm 2mm;
+    font-family: "Courier New", ui-monospace, monospace;
+    font-size: 10pt;
+    line-height: 1.35;
   }
+
+  /* Thermal paper is one colour: grey text and grey rules print faint or not
+     at all, so everything goes solid black. */
+  #receipt-print, #receipt-print * {
+    color: #000;
+    border-color: #000;
+  }
+
+  #receipt-print .text-base { font-size: 13pt; }
+  #receipt-print .text-sm { font-size: 12pt; }
+  #receipt-print .text-xs { font-size: 10pt; }
 }
