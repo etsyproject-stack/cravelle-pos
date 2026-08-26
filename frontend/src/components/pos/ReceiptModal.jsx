@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { useSettings } from '../../context/SettingsContext';
@@ -11,41 +12,72 @@ const PX_PER_MM = 96 / 25.4;
 /** A little slack so the last line is never clipped by rounding. */
 const TAIL_MM = 6;
 
+const PRINT_ROOT_ID = 'receipt-print-root';
+const PAGE_STYLE_ID = 'receipt-page-size';
+
 /**
- * Tell the printer how long this particular receipt is.
+ * Lift a copy of the receipt out of the app for printing.
  *
- * Thermal drivers advertise an enormous page (58 x 3276mm on a POS-58). Left
- * alone the browser lays the receipt out on that page and scales it down, so
- * the text prints tiny and metres of blank paper follow. Chrome rejects
- * `size: <length> auto`, so there is no way to say "stop at the last line" —
- * the height has to be measured and written out as a number.
+ * Hiding the rest of the page is not enough: hidden elements still take up
+ * room, so the browser pages through the whole app and spits out blank paper
+ * before reaching the receipt. Only a copy parked directly on <body>, with
+ * every sibling removed from the layout, prints on its own.
+ *
+ * It also carries the page size. Thermal drivers advertise an enormous page
+ * (58 x 3276mm on a POS-58) and the browser will happily feed all of it, but
+ * Chrome rejects `size: <length> auto` — so the height is measured off the
+ * receipt and written out as a number.
  */
-function sizePageToReceipt(widthMm) {
+function openPrintRoot(widthMm) {
   const receipt = document.getElementById('receipt-print');
-  if (!receipt) return;
+  if (!receipt || document.getElementById(PRINT_ROOT_ID)) return;
 
   const heightMm = Math.ceil(receipt.getBoundingClientRect().height / PX_PER_MM) + TAIL_MM;
 
-  let style = document.getElementById('receipt-page-size');
+  let style = document.getElementById(PAGE_STYLE_ID);
   if (!style) {
     style = document.createElement('style');
-    style.id = 'receipt-page-size';
+    style.id = PAGE_STYLE_ID;
     document.head.appendChild(style);
   }
   style.textContent = `@page { size: ${widthMm}mm ${heightMm}mm; margin: 0; }`;
+
+  // A copy, not the node itself — React still owns the original and would
+  // lose track of it if we moved it.
+  const root = document.createElement('div');
+  root.id = PRINT_ROOT_ID;
+  const copy = receipt.cloneNode(true);
+  copy.removeAttribute('id');
+  root.appendChild(copy);
+  document.body.appendChild(root);
+}
+
+function closePrintRoot() {
+  document.getElementById(PRINT_ROOT_ID)?.remove();
+  document.getElementById(PAGE_STYLE_ID)?.remove();
 }
 
 /** Printable till receipt, also used to reprint from the Orders page. */
 export default function ReceiptModal({ order, onClose }) {
   const { settings, formatMoney } = useSettings();
-  if (!order) return null;
-
   const widthMm = Number(settings.receipt_width) || 58;
 
-  const print = () => {
-    sizePageToReceipt(widthMm);
-    window.print();
-  };
+  // Hooked to the browser's own print events so Ctrl+P behaves like the button.
+  useEffect(() => {
+    if (!order) return undefined;
+
+    const before = () => openPrintRoot(widthMm);
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', closePrintRoot);
+
+    return () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', closePrintRoot);
+      closePrintRoot();
+    };
+  }, [order, widthMm]);
+
+  if (!order) return null;
 
   return (
     <Modal
@@ -55,7 +87,7 @@ export default function ReceiptModal({ order, onClose }) {
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>Close</Button>
-          <Button onClick={print}>🖨️ Print Receipt</Button>
+          <Button onClick={() => window.print()}>🖨️ Print Receipt</Button>
         </>
       }
     >

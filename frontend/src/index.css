@@ -44,29 +44,39 @@ body {
 .receipt-paper .receipt-title { font-size: 12pt; }
 .receipt-paper .receipt-total { font-size: 11pt; }
 
+/* ReceiptModal parks a copy of the receipt here while printing. Off-screen
+   rather than display:none, so it can still be measured. */
+#receipt-print-root {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+}
+
 @media print {
   html, body {
     height: auto;
+    margin: 0;
     background: #fff;
   }
 
-  body * { visibility: hidden; }
-  #receipt-print, #receipt-print * { visibility: visible; }
+  /* Hiding the app is not enough — hidden elements keep their space and the
+     browser feeds blank pages before reaching the receipt. Taking them out of
+     the layout entirely is what stops that. */
+  body > *:not(#receipt-print-root) { display: none !important; }
 
-  #receipt-print {
-    position: absolute;
-    left: 0;
-    top: 0;
+  #receipt-print-root {
+    position: static;
+    left: auto;
   }
 
   /* Thermal paper is one colour: grey text and grey rules print faint or not
      at all, so everything goes solid black. */
-  #receipt-print, #receipt-print * {
+  #receipt-print-root, #receipt-print-root * {
     color: #000;
     border-color: #000;
   }
 
   /* A long receipt spills onto a second page, which on a continuous roll is
      simply more paper — but never split a line down the middle. */
-  #receipt-print > * { break-inside: avoid; }
+  #receipt-print-root .receipt-paper > * { break-inside: avoid; }
 }
