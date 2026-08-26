@@ -33,7 +33,7 @@ class BootstrapController extends Controller
         return response()->json([
             'data' => [
                 'synced_at' => now()->toIso8601String(),
-                'categories' => $this->categories->allWithCounts(),
+                'categories' => $this->categories->allWithCounts(activeOnly: true),
                 'products' => ProductResource::collection($this->products->search(['active' => 1]))->resolve(),
                 'addons' => Addon::query()->where('is_active', true)->orderBy('name')->get(),
                 'customers' => CustomerResource::collection($this->customers->search(null))->resolve(),

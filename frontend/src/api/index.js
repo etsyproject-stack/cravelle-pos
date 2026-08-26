@@ -11,7 +11,7 @@ export const dashboardApi = {
 };
 
 export const categoryApi = {
-  list: () => client.get('/categories'),
+  list: (params) => client.get('/categories', { params }),
   create: (data) => client.post('/categories', data),
   update: (id, data) => client.put(`/categories/${id}`, data),
   remove: (id) => client.delete(`/categories/${id}`),

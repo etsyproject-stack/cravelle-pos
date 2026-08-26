@@ -13,10 +13,13 @@ class CategoryRepository extends BaseRepository implements CategoryRepositoryInt
         parent::__construct($model);
     }
 
-    public function allWithCounts(): Collection
+    public function allWithCounts(bool $activeOnly = false): Collection
     {
         return Category::query()
-            ->withCount('products')
+            ->withCount($activeOnly
+                ? ['products' => fn ($query) => $query->where('is_active', true)]
+                : ['products'])
+            ->when($activeOnly, fn ($query) => $query->where('is_active', true))
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();

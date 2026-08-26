@@ -66,7 +66,7 @@ export default function POS() {
   const [submitting, setSubmitting] = useState(false);
   const [localHeld, setLocalHeld] = useState(() => localHeldOrders());
 
-  const { data: catData } = useApi(() => categoryApi.list(), [online]);
+  const { data: catData } = useApi(() => categoryApi.list({ active: 1 }), [online]);
   const { data: prodData, loading: prodLoading } = useApi(
     () =>
       productApi.list({

@@ -7,6 +7,7 @@ use App\Http\Requests\StoreCategoryRequest;
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class CategoryController extends Controller
@@ -15,9 +16,11 @@ class CategoryController extends Controller
     {
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->categories->allWithCounts()]);
+        return response()->json([
+            'data' => $this->categories->allWithCounts($request->boolean('active')),
+        ]);
     }
 
     public function store(StoreCategoryRequest $request): JsonResponse
