@@ -81,12 +81,11 @@ body {
     left: auto;
   }
 
-  /* Anchor the receipt to the left of the page. The print head covers the
-     leftmost part of the roll, not a strip centred on it, so a centred
-     receipt hangs its right-hand column past the end of the head and the
-     prices come out truncated. */
+  /* Centred inside the root, which ReceiptModal caps at the printable strip.
+     Centring on the full roll width instead would hang the right-hand column
+     past the end of the print head and truncate the prices. */
   #receipt-print-root .receipt-paper {
-    margin-left: 0;
+    margin-left: auto;
     margin-right: auto;
   }
 

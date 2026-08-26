@@ -36,14 +36,10 @@ const PRINTABLE_MM = { 58: 48, 80: 72 };
 /** Held back from the printable strip so nothing rides the right-hand edge. */
 const SAFETY_MM = 2;
 
-/**
- * The page is declared at the full roll width even though the receipt is
- * narrower. Chrome stretches an undersized page out to fill the sheet — a
- * 48mm page on 58mm paper comes out 1.2x too wide and the price column falls
- * off the print head. Matching the paper leaves it nothing to scale, and the
- * receipt is inset with margins instead.
- */
-const contentWidth = (rollMm) => (PRINTABLE_MM[rollMm] ?? rollMm - 10) - SAFETY_MM;
+const printableWidth = (rollMm) => PRINTABLE_MM[rollMm] ?? rollMm - 10;
+
+/** The receipt itself, held a little inside the strip the head can reach. */
+const contentWidth = (rollMm) => printableWidth(rollMm) - SAFETY_MM;
 
 /**
  * Lift a copy of the receipt out of the app for printing.
@@ -72,7 +68,17 @@ function openPrintRoot(rollMm, tailMm) {
     style.id = PAGE_STYLE_ID;
     document.head.appendChild(style);
   }
-  style.textContent = `@page { size: ${rollMm}mm ${heightMm}mm; margin: 0; }`;
+  // The page is declared at the full roll width: Chrome stretches an
+  // undersized page out to fill the sheet, and a 48mm page on 58mm paper comes
+  // back 1.2x too wide with the price column off the head.
+  //
+  // Within that page the root is capped at the printable strip, so centring
+  // the receipt centres it on the ink the printer can actually lay down rather
+  // than on paper it cannot reach.
+  style.textContent = `
+    @page { size: ${rollMm}mm ${heightMm}mm; margin: 0; }
+    @media print { #${PRINT_ROOT_ID} { width: ${printableWidth(rollMm)}mm; } }
+  `;
 
   // A copy, not the node itself — React still owns the original and would
   // lose track of it if we moved it.
