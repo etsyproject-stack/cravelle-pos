@@ -78,6 +78,15 @@ body {
     left: auto;
   }
 
+  /* Anchor the receipt to the left of the page. The print head covers the
+     leftmost part of the roll, not a strip centred on it, so a centred
+     receipt hangs its right-hand column past the end of the head and the
+     prices come out truncated. */
+  #receipt-print-root .receipt-paper {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
   /* Thermal paper is one colour: grey text and grey rules print faint or not
      at all, so everything goes solid black. */
   #receipt-print-root, #receipt-print-root * {
