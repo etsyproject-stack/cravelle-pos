@@ -45,6 +45,9 @@ body {
 .receipt-paper .receipt-title { font-size: 12pt; }
 .receipt-paper .receipt-total { font-size: 11pt; }
 
+/* Only meaningful on paper — it would just be a gap in the preview. */
+.receipt-feed { display: none; }
+
 /* The right-hand column is money: let the item name wrap instead, and never
    let a long name squeeze or break the amount. */
 .receipt-paper .justify-between > span:last-child {
@@ -97,4 +100,14 @@ body {
   /* A long receipt spills onto a second page, which on a continuous roll is
      simply more paper — but never split a line down the middle. */
   #receipt-print-root .receipt-paper > * { break-inside: avoid; }
+
+  /* Thermal drivers trim blank paper off the end of a page, so a receipt that
+     simply stops leaves its last lines inside the machine until the next sale
+     pushes them out. The rule at the foot of this spacer is the last thing
+     printed, which forces the paper to advance that far — and gives the
+     cashier a line to tear against. */
+  #receipt-print-root .receipt-feed {
+    display: block;
+    border-bottom: 1px dashed #000;
+  }
 }

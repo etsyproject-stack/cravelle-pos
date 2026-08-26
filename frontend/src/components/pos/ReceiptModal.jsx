@@ -62,7 +62,9 @@ function openPrintRoot(rollMm, tailMm) {
   const receipt = document.getElementById('receipt-print');
   if (!receipt || document.getElementById(PRINT_ROOT_ID)) return;
 
-  const heightMm = Math.ceil(receipt.getBoundingClientRect().height / PX_PER_MM) + tailMm;
+  // The feed spacer is hidden on screen, so add it back by hand — plus a
+  // millimetre or two of slack against rounding.
+  const heightMm = Math.ceil(receipt.getBoundingClientRect().height / PX_PER_MM) + tailMm + 2;
 
   let style = document.getElementById(PAGE_STYLE_ID);
   if (!style) {
@@ -200,6 +202,11 @@ export default function ReceiptModal({ order, onClose }) {
         )}
         <div className="my-2 border-t border-dashed border-black" />
         <p className="whitespace-pre-line text-center">{settings.receipt_footer}</p>
+        {/* Drives the paper past the tear-off blade. The rule at the bottom is
+            not decoration: the driver trims blank paper from the end of a page,
+            so something has to be printed down there for the feed to happen —
+            and a line is the natural place to tear. */}
+        <div className="receipt-feed" style={{ height: `${tailMm}mm` }} />
       </div>
     </Modal>
   );
