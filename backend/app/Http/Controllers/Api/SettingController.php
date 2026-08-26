@@ -23,6 +23,7 @@ class SettingController extends Controller
         'receipt_footer',
         'receipt_printer',
         'receipt_width',
+        'receipt_feed_mm',
         'loyalty_earn_rate',
     ];
 

@@ -102,6 +102,16 @@ export default function Settings() {
               <option value="80">80mm — wide roll (POS-80)</option>
             </Select>
           </div>
+          <Input
+            label="Blank paper after the receipt (mm)"
+            type="number"
+            min="0"
+            max="80"
+            step="5"
+            value={form.receipt_feed_mm ?? '35'}
+            onChange={(e) => set('receipt_feed_mm', e.target.value)}
+            hint="Feeds the last line past the tear-off blade. Raise it if the footer stays inside the printer; lower it to use less paper."
+          />
           <Textarea label="Receipt footer message" value={form.receipt_footer || ''} onChange={(e) => set('receipt_footer', e.target.value)} rows={2} />
         </div>
       </Card>

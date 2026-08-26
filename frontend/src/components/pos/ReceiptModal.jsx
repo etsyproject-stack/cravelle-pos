@@ -12,13 +12,16 @@ const PX_PER_MM = 96 / 25.4;
 /**
  * Blank paper added after the last line, in mm.
  *
- * The print head sits roughly 25mm behind the tear-off edge, so without this
- * the footer never leaves the printer — it stays inside until the next sale
- * pushes it out, and the customer gets a bill that stops at the total. The
- * feed carries the last line past the blade. A couple of millimetres of it
- * are slack against rounding in the measurement.
+ * The print head sits behind the tear-off edge, so without this the footer
+ * never leaves the printer — it waits inside until the next sale pushes it
+ * out and the customer gets a bill that stops at the total. The feed carries
+ * the last line past the blade.
+ *
+ * The distance is physical and differs between printers, so it is a setting:
+ * raise it if the footer is still trapped, lower it to save paper. This is
+ * only the fallback for a till that has never set one.
  */
-const TAIL_MM = 27;
+const DEFAULT_TAIL_MM = 35;
 
 const PRINT_ROOT_ID = 'receipt-print-root';
 const PAGE_STYLE_ID = 'receipt-page-size';
@@ -55,11 +58,11 @@ const contentWidth = (rollMm) => (PRINTABLE_MM[rollMm] ?? rollMm - 10) - SAFETY_
  * Chrome rejects `size: <length> auto` — so the height is measured off the
  * receipt and written out as a number.
  */
-function openPrintRoot(rollMm) {
+function openPrintRoot(rollMm, tailMm) {
   const receipt = document.getElementById('receipt-print');
   if (!receipt || document.getElementById(PRINT_ROOT_ID)) return;
 
-  const heightMm = Math.ceil(receipt.getBoundingClientRect().height / PX_PER_MM) + TAIL_MM;
+  const heightMm = Math.ceil(receipt.getBoundingClientRect().height / PX_PER_MM) + tailMm;
 
   let style = document.getElementById(PAGE_STYLE_ID);
   if (!style) {
@@ -89,12 +92,13 @@ export default function ReceiptModal({ order, onClose }) {
   const { settings, formatMoney } = useSettings();
   const rollMm = Number(settings.receipt_width) || 58;
   const widthMm = contentWidth(rollMm);
+  const tailMm = Number(settings.receipt_feed_mm) || DEFAULT_TAIL_MM;
 
   // Hooked to the browser's own print events so Ctrl+P behaves like the button.
   useEffect(() => {
     if (!order) return undefined;
 
-    const before = () => openPrintRoot(rollMm);
+    const before = () => openPrintRoot(rollMm, tailMm);
     window.addEventListener('beforeprint', before);
     window.addEventListener('afterprint', closePrintRoot);
 
@@ -103,7 +107,7 @@ export default function ReceiptModal({ order, onClose }) {
       window.removeEventListener('afterprint', closePrintRoot);
       closePrintRoot();
     };
-  }, [order, rollMm]);
+  }, [order, rollMm, tailMm]);
 
   if (!order) return null;
 

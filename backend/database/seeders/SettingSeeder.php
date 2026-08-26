@@ -25,6 +25,9 @@ class SettingSeeder extends Seeder
             // Width of the till roll in mm — 58 for a POS-58 class printer,
             // 80 for the wider ones. The receipt is laid out to match.
             'receipt_width' => '58',
+            // Blank paper fed after the last line so it clears the tear-off
+            // blade — the gap is physical and varies by printer.
+            'receipt_feed_mm' => '35',
             // 1 loyalty point per Rs 100 spent.
             'loyalty_earn_rate' => '0.01',
         ];

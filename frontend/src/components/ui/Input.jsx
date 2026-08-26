@@ -1,4 +1,4 @@
-export function Input({ label, error, className = '', ...props }) {
+export function Input({ label, error, hint, className = '', ...props }) {
   return (
     <label className="block">
       {label && <span className="mb-1 block text-xs font-semibold text-slate-600">{label}</span>}
@@ -7,6 +7,7 @@ export function Input({ label, error, className = '', ...props }) {
         {...props}
       />
       {error && <span className="mt-1 block text-xs text-red-600">{error}</span>}
+      {hint && !error && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
     </label>
   );
 }
