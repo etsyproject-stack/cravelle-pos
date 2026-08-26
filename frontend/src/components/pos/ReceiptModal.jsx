@@ -33,8 +33,13 @@ const PAGE_STYLE_ID = 'receipt-page-size';
  */
 const PRINTABLE_MM = { 58: 48, 80: 72 };
 
-/** Held back from the printable strip so nothing rides the right-hand edge. */
-const SAFETY_MM = 2;
+/**
+ * Held back from the printable strip, and deliberately more than the edge
+ * needs: the head is mounted left of centre on the roll, so the slack is spent
+ * pushing the receipt right rather than splitting it evenly. Every millimetre
+ * here is one the item names lose, which is why it stops at four.
+ */
+const SAFETY_MM = 4;
 
 const printableWidth = (rollMm) => PRINTABLE_MM[rollMm] ?? rollMm - 10;
 

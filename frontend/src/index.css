@@ -81,12 +81,14 @@ body {
     left: auto;
   }
 
-  /* Centred inside the root, which ReceiptModal caps at the printable strip.
-     Centring on the full roll width instead would hang the right-hand column
-     past the end of the print head and truncate the prices. */
+  /* Pushed to the right of the root, which ReceiptModal caps at the printable
+     strip. The head is mounted left of centre on the roll, so a receipt centred
+     on the printable strip still reads left-of-centre on the paper; spending
+     the width held back in SAFETY_MM on a rightward shift evens the margins up.
+     It cannot go further — past the strip the prices simply stop printing. */
   #receipt-print-root .receipt-paper {
     margin-left: auto;
-    margin-right: auto;
+    margin-right: 0;
   }
 
   /* Thermal paper is one colour: grey text and grey rules print faint or not
