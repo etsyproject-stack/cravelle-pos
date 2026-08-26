@@ -9,8 +9,16 @@ const methodLabel = (id) => PAYMENT_METHODS.find((m) => m.id === id)?.label || i
 /** CSS resolves 1mm against 96dpi regardless of the printer's real density. */
 const PX_PER_MM = 96 / 25.4;
 
-/** A little slack so the last line is never clipped by rounding. */
-const TAIL_MM = 6;
+/**
+ * Blank paper added after the last line, in mm.
+ *
+ * The print head sits roughly 25mm behind the tear-off edge, so without this
+ * the footer never leaves the printer — it stays inside until the next sale
+ * pushes it out, and the customer gets a bill that stops at the total. The
+ * feed carries the last line past the blade. A couple of millimetres of it
+ * are slack against rounding in the measurement.
+ */
+const TAIL_MM = 27;
 
 const PRINT_ROOT_ID = 'receipt-print-root';
 const PAGE_STYLE_ID = 'receipt-page-size';
