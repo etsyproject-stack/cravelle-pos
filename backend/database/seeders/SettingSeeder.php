@@ -22,6 +22,9 @@ class SettingSeeder extends Seeder
             'timezone' => 'Asia/Karachi',
             'receipt_footer' => "Thank you! Taste what you crave.\nFree Home Delivery — 0302 4777730\ncravelle.bar",
             'receipt_printer' => 'Default Printer',
+            // Width of the till roll in mm — 58 for a POS-58 class printer,
+            // 80 for the wider ones. The receipt is laid out to match.
+            'receipt_width' => '58',
             // 1 loyalty point per Rs 100 spent.
             'loyalty_earn_rate' => '0.01',
         ];

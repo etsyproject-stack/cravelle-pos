@@ -91,7 +91,17 @@ export default function Settings() {
 
       <Card title="Receipt & Printer">
         <div className="space-y-4">
-          <Input label="Receipt printer name" value={form.receipt_printer || ''} onChange={(e) => set('receipt_printer', e.target.value)} placeholder="e.g. EPSON TM-T20III" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input label="Receipt printer name" value={form.receipt_printer || ''} onChange={(e) => set('receipt_printer', e.target.value)} placeholder="e.g. EPSON TM-T20III" />
+            <Select
+              label="Paper width"
+              value={form.receipt_width ?? '58'}
+              onChange={(e) => set('receipt_width', e.target.value)}
+            >
+              <option value="58">58mm — narrow roll (POS-58)</option>
+              <option value="80">80mm — wide roll (POS-80)</option>
+            </Select>
+          </div>
           <Textarea label="Receipt footer message" value={form.receipt_footer || ''} onChange={(e) => set('receipt_footer', e.target.value)} rows={2} />
         </div>
       </Card>

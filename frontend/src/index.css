@@ -17,14 +17,32 @@ body {
 .thin-scroll::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
 .thin-scroll::-webkit-scrollbar-track { background: transparent; }
 
-/* Receipt print styles — 80mm thermal roll.
-   Without a @page rule the browser lays the receipt out on A4 and the printer
-   shrinks the sheet to fit the roll, which is what makes the text tiny and
-   leaves most of the paper blank. Declaring the page as 80mm wide prints at
-   1:1. The two @page rules are deliberate: browsers that reject `auto` as a
-   height keep the first, the rest use the second and stop at the last line. */
-@page { size: 80mm 297mm; margin: 0; }
-@page { size: 80mm auto; margin: 0; }
+/* Receipt print styles.
+   Without a @page rule the browser lays the receipt out on the driver's page —
+   58 x 3276mm on a POS-58 — and scales it to fit, which is what makes the text
+   tiny and feeds metres of blank paper. ReceiptModal replaces this rule at
+   print time with the roll width and the receipt's measured height; the values
+   below are only the fallback if that fails. Chrome rejects `size: <length>
+   auto`, so the height must always be a real number. */
+@page { size: 58mm 200mm; margin: 0; }
+
+/* The on-screen receipt is laid out in the same physical units as the printed
+   one, so the preview matches the paper and its height can be measured. */
+.receipt-paper {
+  /* Sans-serif, not the traditional monospace: the layout aligns prices with
+     flexbox rather than a character grid, so the fixed pitch buys nothing and
+     costs about two characters a line on a 48mm print area. */
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  line-height: 1.35;
+  /* 5mm of side padding keeps text inside the printable area of the roll. */
+  padding: 3mm 5mm;
+  color: #000;
+  background: #fff;
+}
+
+.receipt-paper .receipt-title { font-size: 12pt; }
+.receipt-paper .receipt-total { font-size: 11pt; }
 
 @media print {
   html, body {
@@ -39,13 +57,6 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    /* 80mm paper prints on ~72mm; the padding keeps text off the edges. */
-    width: 72mm;
-    max-width: 72mm;
-    padding: 3mm 2mm;
-    font-family: "Courier New", ui-monospace, monospace;
-    font-size: 10pt;
-    line-height: 1.35;
   }
 
   /* Thermal paper is one colour: grey text and grey rules print faint or not
@@ -55,7 +66,7 @@ body {
     border-color: #000;
   }
 
-  #receipt-print .text-base { font-size: 13pt; }
-  #receipt-print .text-sm { font-size: 12pt; }
-  #receipt-print .text-xs { font-size: 10pt; }
+  /* A long receipt spills onto a second page, which on a continuous roll is
+     simply more paper — but never split a line down the middle. */
+  #receipt-print > * { break-inside: avoid; }
 }

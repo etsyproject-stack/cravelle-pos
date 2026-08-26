@@ -22,6 +22,7 @@ class SettingController extends Controller
         'timezone',
         'receipt_footer',
         'receipt_printer',
+        'receipt_width',
         'loyalty_earn_rate',
     ];
 
