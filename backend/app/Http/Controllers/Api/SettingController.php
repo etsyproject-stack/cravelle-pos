@@ -19,6 +19,8 @@ class SettingController extends Controller
         'currency_decimals',
         'tax_rate',
         'tax_name',
+        'service_charge_rate',
+        'service_charge_name',
         'timezone',
         'receipt_footer',
         'receipt_printer',

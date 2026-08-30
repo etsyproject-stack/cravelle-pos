@@ -49,8 +49,9 @@ export default function POS() {
   const { user } = useAuth();
   const { online, catalog, refreshPending } = useOffline();
   const taxRate = Number(settings.tax_rate || 0);
+  const serviceRate = Number(settings.service_charge_rate || 0);
 
-  const cartApi = useCart(taxRate);
+  const cartApi = useCart(taxRate, serviceRate);
   const { cart, totals } = cartApi;
 
   const [categoryId, setCategoryId] = useState(null);
@@ -282,6 +283,8 @@ export default function POS() {
             removeItem={cartApi.removeItem}
             taxName={`${settings.tax_name} (${taxRate}%)`}
             showTax={taxRate > 0}
+            serviceName={`${settings.service_charge_name || 'Service Charge'} (${serviceRate}%)`}
+            showService={serviceRate > 0}
             onDiscount={() => setShowDiscount(true)}
             onHold={holdOrder}
             onShowHeld={() => setShowHeld(true)}

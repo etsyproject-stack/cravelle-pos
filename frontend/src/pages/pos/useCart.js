@@ -82,7 +82,7 @@ function reducer(state, action) {
   }
 }
 
-export function useCart(taxRate) {
+export function useCart(taxRate, serviceRate) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const totals = useMemo(() => {
@@ -92,16 +92,21 @@ export function useCart(taxRate) {
     if (state.discountType === 'fixed') discount = Number(state.discountValue);
     const couponDiscount = Number(state.coupon?.discount ?? 0);
     discount = Math.min(subtotal, discount + couponDiscount);
-    const taxable = subtotal - discount;
-    const tax = (taxable * Number(taxRate || 0)) / 100;
+    // Mirrors OrderService: service charge on the discounted subtotal, tax on
+    // the two together. The server recomputes all of this — this is what the
+    // cashier and the customer see before it does.
+    const net = subtotal - discount;
+    const serviceCharge = (net * Number(serviceRate || 0)) / 100;
+    const tax = ((net + serviceCharge) * Number(taxRate || 0)) / 100;
     return {
       subtotal,
       discount,
+      serviceCharge,
       tax,
-      total: taxable + tax,
+      total: net + serviceCharge + tax,
       itemCount: state.items.reduce((sum, i) => sum + i.qty, 0),
     };
-  }, [state.items, state.discountType, state.discountValue, state.coupon, taxRate]);
+  }, [state.items, state.discountType, state.discountValue, state.coupon, taxRate, serviceRate]);
 
   const addItem = useCallback(
     (product, { variant = null, addons = [], qty = 1, notes = '' } = {}) =>

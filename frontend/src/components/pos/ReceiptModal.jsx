@@ -184,9 +184,17 @@ export default function ReceiptModal({ order, onClose }) {
             <span>-{formatMoney(order.discount)}</span>
           </div>
         )}
+        {Number(order.service_charge) > 0 && (
+          <div className="flex justify-between">
+            <span>
+              {settings.service_charge_name || 'Service Charge'} ({Number(order.service_charge_rate)}%)
+            </span>
+            <span>{formatMoney(order.service_charge)}</span>
+          </div>
+        )}
         {Number(order.tax_rate) > 0 && (
           <div className="flex justify-between">
-            <span>{settings.tax_name} ({order.tax_rate}%)</span>
+            <span>{settings.tax_name} ({Number(order.tax_rate)}%)</span>
             <span>{formatMoney(order.tax)}</span>
           </div>
         )}

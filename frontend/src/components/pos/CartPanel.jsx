@@ -56,6 +56,8 @@ export default function CartPanel({
   removeItem,
   taxName,
   showTax = true,
+  serviceName,
+  showService = false,
   onDiscount,
   onHold,
   onShowHeld,
@@ -124,6 +126,12 @@ export default function CartPanel({
               −{formatMoney(totals.discount)}
             </span>
           </button>
+          {showService && (
+            <div className="flex justify-between text-slate-600">
+              <span>{serviceName}</span>
+              <span>{formatMoney(totals.serviceCharge)}</span>
+            </div>
+          )}
           {showTax && (
             <div className="flex justify-between text-slate-600">
               <span>{taxName}</span>

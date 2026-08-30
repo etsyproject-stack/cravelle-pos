@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\User;
 use Database\Seeders\CouponSeeder;
 use Database\Seeders\CustomerSeeder;
@@ -69,16 +70,19 @@ class OrderFlowTest extends TestCase
             ],
             'payments' => [
                 ['method' => 'cash', 'amount' => 1000, 'tendered' => 2000],
-                ['method' => 'card', 'amount' => 1426.40],
+                ['method' => 'card', 'amount' => 1726.06],
             ],
         ]);
 
         $response->assertCreated();
 
-        // 2 × (1099 + 249) = 2696; SAVE10 → −269.60; menu prices are tax-inclusive.
+        // 2 × (1099 + 249) = 2696; SAVE10 → −269.60 leaves 2426.40;
+        // 5% service = 121.32; 7% GST on 2547.72 = 178.34.
         $response->assertJsonPath('data.subtotal', '2696.00')
             ->assertJsonPath('data.discount', '269.60')
-            ->assertJsonPath('data.total', '2426.40')
+            ->assertJsonPath('data.service_charge', '121.32')
+            ->assertJsonPath('data.tax', '178.34')
+            ->assertJsonPath('data.total', '2726.06')
             ->assertJsonPath('data.payment_status', 'paid')
             ->assertJsonPath('data.status', 'pending')
             ->assertJsonPath('data.items.0.notes', 'extra spicy')
@@ -97,7 +101,7 @@ class OrderFlowTest extends TestCase
         $orderId = $this->postJson('/api/v1/orders', [
             'order_type' => 'dine_in',
             'items' => [['product_id' => $water->id, 'qty' => 5]],
-            'payments' => [['method' => 'cash', 'amount' => 345]],
+            'payments' => [['method' => 'cash', 'amount' => 387.61]],
         ])->assertCreated()->json('data.id');
 
         $this->assertSame($initialStock - 5, $water->refresh()->stock_qty);
@@ -161,16 +165,62 @@ class OrderFlowTest extends TestCase
         $customer = Customer::query()->where('is_walk_in', false)->firstOrFail();
         $burger = $this->product('Crispo Burger');
 
-        // 2 × 649 = 1298, earning 1 point per Rs 100.
+        // 2 × 649 = 1298, +5% service +7% GST = 1458.30, at 1 point per Rs 100.
         $earned = $this->postJson('/api/v1/orders', [
             'order_type' => 'dine_in',
             'customer_id' => $customer->id,
             'items' => [['product_id' => $burger->id, 'qty' => 2]],
-            'payments' => [['method' => 'card', 'amount' => 1298]],
+            'payments' => [['method' => 'card', 'amount' => 1458.30]],
         ])->assertCreated()->json('data.loyalty_points_earned');
 
-        $this->assertSame(12, $earned);
-        $this->assertSame(12, $customer->refresh()->loyalty_points);
+        $this->assertSame(14, $earned);
+        $this->assertSame(14, $customer->refresh()->loyalty_points);
+    }
+
+    public function test_service_charge_is_billed_before_tax_and_is_itself_taxed(): void
+    {
+        $this->actingAsRole('cashier@cravelle.test');
+
+        // A single Rs 1,000 line keeps the arithmetic checkable by eye:
+        // 5% service = 50, then 7% GST on 1,050 = 73.50, so the bill is
+        // 1,123.50 — not 1,120, which is what charging both on the subtotal
+        // would give.
+        $product = $this->product('Crispo Burger');
+        $product->update(['price' => 1000]);
+
+        $this->postJson('/api/v1/orders', [
+            'order_type' => 'takeaway',
+            'items' => [['product_id' => $product->id, 'qty' => 1]],
+            'payments' => [['method' => 'cash', 'amount' => 1123.50]],
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.subtotal', '1000.00')
+            ->assertJsonPath('data.service_charge_rate', '5.00')
+            ->assertJsonPath('data.service_charge', '50.00')
+            ->assertJsonPath('data.tax_rate', '7.00')
+            ->assertJsonPath('data.tax', '73.50')
+            ->assertJsonPath('data.total', '1123.50')
+            ->assertJsonPath('data.payment_status', 'paid');
+    }
+
+    public function test_charges_stay_off_the_bill_when_their_rates_are_zero(): void
+    {
+        $this->actingAsRole('cashier@cravelle.test');
+
+        Setting::query()->where('key', 'service_charge_rate')->update(['value' => '0']);
+        Setting::query()->where('key', 'tax_rate')->update(['value' => '0']);
+
+        $product = $this->product('Crispo Burger');
+
+        $this->postJson('/api/v1/orders', [
+            'order_type' => 'takeaway',
+            'items' => [['product_id' => $product->id, 'qty' => 1]],
+            'payments' => [['method' => 'cash', 'amount' => 649]],
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.service_charge', '0.00')
+            ->assertJsonPath('data.tax', '0.00')
+            ->assertJsonPath('data.total', '649.00');
     }
 
     public function test_bootstrap_returns_everything_the_till_needs_offline(): void
@@ -198,7 +248,7 @@ class OrderFlowTest extends TestCase
                 'placed_at' => $placedAt->toIso8601String(),
                 'order_type' => 'takeaway',
                 'items' => [['product_id' => $burger->id, 'qty' => 2]],
-                'payments' => [['method' => 'cash', 'amount' => 1298, 'tendered' => 1500]],
+                'payments' => [['method' => 'cash', 'amount' => 1458.30, 'tendered' => 1500]],
             ]],
         ]);
 
@@ -209,7 +259,7 @@ class OrderFlowTest extends TestCase
         $order = Order::query()->where('client_uuid', '11111111-1111-4111-8111-111111111111')->firstOrFail();
         $this->assertTrue($order->placed_offline);
         $this->assertSame('paid', $order->payment_status->value);
-        $this->assertSame(1298.0, (float) $order->total);
+        $this->assertSame(1458.30, (float) $order->total);
         $this->assertEquals($placedAt->toDateTimeString(), $order->created_at->toDateTimeString());
     }
 
@@ -222,7 +272,7 @@ class OrderFlowTest extends TestCase
             'placed_at' => now()->subHour()->toIso8601String(),
             'order_type' => 'dine_in',
             'items' => [['product_id' => $this->product('Club Sandwich')->id, 'qty' => 1]],
-            'payments' => [['method' => 'cash', 'amount' => 799]],
+            'payments' => [['method' => 'cash', 'amount' => 897.68]],
         ]]];
 
         $first = $this->postJson('/api/v1/orders/sync', $payload)->assertOk();
@@ -233,7 +283,7 @@ class OrderFlowTest extends TestCase
             $second->json('data.synced.0.order_number')
         );
         $this->assertSame(1, Order::query()->count());
-        $this->assertSame(799.0, (float) Order::query()->sum('total'));
+        $this->assertSame(897.68, (float) Order::query()->sum('total'));
     }
 
     public function test_offline_order_is_still_recorded_when_stock_ran_out(): void
@@ -251,12 +301,12 @@ class OrderFlowTest extends TestCase
                 'placed_at' => now()->subMinutes(30)->toIso8601String(),
                 'order_type' => 'takeaway',
                 'items' => [['product_id' => $water->id, 'qty' => 4]],
-                'payments' => [['method' => 'cash', 'amount' => 276]],
+                'payments' => [['method' => 'cash', 'amount' => 310.09]],
             ]],
         ])->assertOk()->assertJsonCount(1, 'data.synced');
 
         $this->assertSame(0, $water->refresh()->stock_qty);
-        $this->assertSame(276.0, (float) Order::query()->sum('total'));
+        $this->assertSame(310.09, (float) Order::query()->sum('total'));
     }
 
     public function test_a_bad_order_in_a_sync_batch_does_not_block_the_others(): void
@@ -270,7 +320,7 @@ class OrderFlowTest extends TestCase
                     'placed_at' => now()->subMinutes(20)->toIso8601String(),
                     'order_type' => 'dine_in',
                     'items' => [['product_id' => $this->product('Masala Fries')->id, 'qty' => 1]],
-                    'payments' => [['method' => 'cash', 'amount' => 199]],
+                    'payments' => [['method' => 'cash', 'amount' => 223.58]],
                 ],
                 [
                     'client_uuid' => '55555555-5555-4555-8555-555555555555',
@@ -278,7 +328,7 @@ class OrderFlowTest extends TestCase
                     'order_type' => 'dine_in',
                     // Variant belongs to another product — this one must fail alone.
                     'items' => [['product_id' => $this->product('Plain Fries')->id, 'variant_id' => 999999, 'qty' => 1]],
-                    'payments' => [['method' => 'cash', 'amount' => 149]],
+                    'payments' => [['method' => 'cash', 'amount' => 167.40]],
                 ],
             ],
         ]);

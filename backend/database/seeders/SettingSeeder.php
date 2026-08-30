@@ -16,9 +16,11 @@ class SettingSeeder extends Seeder
             'currency_symbol' => 'Rs ',
             'currency_code' => 'PKR',
             'currency_decimals' => '0',
-            // Menu prices are tax-inclusive; set a rate here if you bill GST separately.
-            'tax_rate' => '0',
+            'tax_rate' => '7',
             'tax_name' => 'GST',
+            // Charged on the discounted subtotal; GST is then charged on both.
+            'service_charge_rate' => '5',
+            'service_charge_name' => 'Service Charge',
             'timezone' => 'Asia/Karachi',
             'receipt_footer' => "Thank you! Taste what you crave.\nFree Home Delivery — 0302 4777730\ncravelle.bar",
             'receipt_printer' => 'Default Printer',

@@ -23,6 +23,8 @@ class OrderResource extends JsonResource
             'discount_value' => $this->discount_value,
             'discount' => $this->discount,
             'coupon_code' => $this->coupon_code,
+            'service_charge_rate' => $this->service_charge_rate,
+            'service_charge' => $this->service_charge,
             'tax_rate' => $this->tax_rate,
             'tax' => $this->tax,
             'total' => $this->total,

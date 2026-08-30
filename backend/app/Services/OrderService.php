@@ -53,10 +53,16 @@ class OrderService
 
             [$coupon, $discount] = $this->resolveDiscount($data, $subtotal, $fromOffline);
 
+            // Service charge is the shop's own revenue and is itself taxable,
+            // so it lands on the discounted subtotal and tax is charged on the
+            // sum of the two.
+            $serviceRate = (float) $this->settings->get('service_charge_rate', '0');
             $taxRate = (float) $this->settings->get('tax_rate', '0');
-            $taxable = $subtotal - $discount;
-            $tax = round($taxable * $taxRate / 100, 2);
-            $total = round($taxable + $tax, 2);
+
+            $net = $subtotal - $discount;
+            $serviceCharge = round($net * $serviceRate / 100, 2);
+            $tax = round(($net + $serviceCharge) * $taxRate / 100, 2);
+            $total = round($net + $serviceCharge + $tax, 2);
 
             /** @var Order $order */
             $order = $this->orders->create([
@@ -75,6 +81,8 @@ class OrderService
                 'discount' => $discount,
                 'coupon_id' => $coupon?->id,
                 'coupon_code' => $coupon?->code,
+                'service_charge_rate' => $serviceRate,
+                'service_charge' => $serviceCharge,
                 'tax_rate' => $taxRate,
                 'tax' => $tax,
                 'total' => $total,

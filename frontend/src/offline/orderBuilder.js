@@ -56,6 +56,8 @@ export function buildOfflineOrder({ cart, totals, payments, settings, cashier, c
     subtotal: totals.subtotal,
     discount: totals.discount,
     coupon_code: cart.coupon?.code || null,
+    service_charge_rate: settings.service_charge_rate,
+    service_charge: totals.serviceCharge,
     tax_rate: settings.tax_rate,
     tax: totals.tax,
     total: totals.total,

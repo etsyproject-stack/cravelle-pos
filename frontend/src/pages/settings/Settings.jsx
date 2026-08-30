@@ -58,10 +58,32 @@ export default function Settings() {
         </div>
       </Card>
 
-      <Card title="Taxes">
-        <div className="grid grid-cols-2 gap-4">
-          <Input label="Tax name" value={form.tax_name || ''} onChange={(e) => set('tax_name', e.target.value)} placeholder="VAT / GST / Sales Tax" />
-          <Input label="Tax rate (%)" type="number" min="0" step="0.01" value={form.tax_rate || ''} onChange={(e) => set('tax_rate', e.target.value)} />
+      <Card title="Service Charge & Tax">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Service charge name"
+              value={form.service_charge_name || ''}
+              onChange={(e) => set('service_charge_name', e.target.value)}
+              placeholder="Service Charge"
+            />
+            <Input
+              label="Service charge (%)"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.service_charge_rate ?? ''}
+              onChange={(e) => set('service_charge_rate', e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Tax name" value={form.tax_name || ''} onChange={(e) => set('tax_name', e.target.value)} placeholder="VAT / GST / Sales Tax" />
+            <Input label="Tax rate (%)" type="number" min="0" step="0.01" value={form.tax_rate || ''} onChange={(e) => set('tax_rate', e.target.value)} />
+          </div>
+          <p className="text-xs text-slate-500">
+            The service charge is added to the discounted subtotal, and tax is
+            then charged on both. Set either to 0 to leave it off the bill.
+          </p>
         </div>
       </Card>
 
