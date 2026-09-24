@@ -13,6 +13,13 @@ function ProductCard({ product, onPick, formatMoney }) {
       </div>
       <div className="flex flex-1 flex-col p-2.5">
         <p className="line-clamp-2 text-sm font-semibold text-slate-800">{product.name}</p>
+        {/* What is in a deal matters at the moment of ringing it up, not just
+            on the printed card behind the counter. */}
+        {product.description && (
+          <p className="mt-0.5 line-clamp-3 text-[11px] leading-snug text-slate-500">
+            {product.description}
+          </p>
+        )}
         <div className="mt-auto flex items-center justify-between pt-1">
           <span className="text-sm font-bold text-orange-600">{formatMoney(product.price)}</span>
           {product.variants?.length > 0 && (

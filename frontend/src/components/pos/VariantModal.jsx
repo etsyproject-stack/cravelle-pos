@@ -46,6 +46,11 @@ export default function VariantModal({ product, onClose, onConfirm }) {
       }
     >
       <div className="space-y-5">
+        {product.description && (
+          <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm leading-snug text-slate-600">
+            {product.description}
+          </p>
+        )}
         {product.variants?.length > 0 && (
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Size</p>
