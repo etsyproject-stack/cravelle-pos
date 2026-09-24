@@ -72,7 +72,29 @@ class MenuSeeder extends Seeder
 
         $menu = [
             [
-                'category' => ['name' => 'Starters', 'icon' => '🍗', 'sort_order' => 1],
+                // Combos lead the list: they are the fastest thing to ring up
+                // and the most often asked for.
+                'category' => ['name' => 'Deals', 'icon' => '🎉', 'sort_order' => 1],
+                'products' => [
+                    ['name' => 'Cravellé Solo', 'price' => 679, 'image' => '🍕',
+                        'description' => '1 small pan pizza + 1 drink 345ml'],
+                    ['name' => 'Crispo Crunch', 'price' => 799, 'image' => '🍔',
+                        'description' => '1 Crispo burger + 1 small plain fries + 1 drink 345ml'],
+                    ['name' => 'Crispo Duo', 'price' => 1299, 'image' => '🍔',
+                        'description' => '2 Crispo burgers + 2 small plain fries + 2 drinks 345ml'],
+                    ['name' => 'Pizza Party', 'price' => 1499, 'image' => '🍕',
+                        'description' => '1 nine-inch pan pizza + 2 pcs garlic bread + 2 drinks 345ml',
+                        'variants' => [['Regular', 1499], ['With Extreme Pizza', 1799]]],
+                    ['name' => 'Cravellé Feast', 'price' => 2499, 'image' => '🍽️',
+                        'description' => '1 nine-inch pan pizza + 1 Crispo burger + 1 Crispo wrap + 1 litre drink',
+                        'variants' => [['Regular', 2499], ['With Extreme Pizza', 2799]]],
+                    ['name' => 'Mega Feast', 'price' => 2299, 'image' => '🍽️',
+                        'description' => '1 twelve-inch pan pizza + 4 pcs cheese bread + 1 litre drink',
+                        'variants' => [['Regular', 2299], ['With Extreme Pizza', 2799]]],
+                ],
+            ],
+            [
+                'category' => ['name' => 'Starters', 'icon' => '🍗', 'sort_order' => 2],
                 'products' => [
                     ['name' => 'Red Dragon Wings', 'price' => 799, 'image' => '🔥', 'addons' => $dipAddons,
                         'description' => '10 pieces'],
@@ -87,7 +109,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Fries', 'icon' => '🍟', 'sort_order' => 2],
+                'category' => ['name' => 'Fries', 'icon' => '🍟', 'sort_order' => 3],
                 'products' => [
                     ['name' => 'Plain Fries', 'price' => 149, 'image' => '🍟', 'addons' => $dipAddons,
                         'variants' => [['Small', 149], ['Large', 299]]],
@@ -98,7 +120,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Burgers', 'icon' => '🍔', 'sort_order' => 3],
+                'category' => ['name' => 'Burgers', 'icon' => '🍔', 'sort_order' => 4],
                 'products' => [
                     ['name' => 'Crispo Burger', 'price' => 649, 'image' => '🍔', 'addons' => $handheldAddons,
                         'description' => 'Crispy thigh fillet with garlic mayo and chipotle sauce'],
@@ -111,7 +133,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Wraps', 'icon' => '🌯', 'sort_order' => 4],
+                'category' => ['name' => 'Wraps', 'icon' => '🌯', 'sort_order' => 5],
                 'products' => [
                     ['name' => 'Cravellé Special Wrap', 'price' => 749, 'image' => '🌯', 'addons' => $handheldAddons,
                         'description' => 'Grilled chicken, fries with salad and three different sauces'],
@@ -126,7 +148,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Sandwiches', 'icon' => '🥪', 'sort_order' => 5],
+                'category' => ['name' => 'Sandwiches', 'icon' => '🥪', 'sort_order' => 6],
                 'products' => [
                     ['name' => 'Crispo Sandwich', 'price' => 849, 'image' => '🥪', 'addons' => $handheldAddons,
                         'description' => 'Fried chicken, ice berg, cucumber, tomato, jalapeños, cheese slice, chipotle sauce and garlic mayo sauce'],
@@ -139,7 +161,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Baked Pan Dough Sandwiches', 'icon' => '🫓', 'sort_order' => 6],
+                'category' => ['name' => 'Baked Pan Dough Sandwiches', 'icon' => '🫓', 'sort_order' => 7],
                 'products' => [
                     ['name' => 'Tikka Sandwich', 'price' => 749, 'image' => '🫓', 'addons' => $handheldAddons,
                         'description' => 'Special sauce, tikka chicken, onion, tomato, capsicum, mozzarella cheese'],
@@ -150,7 +172,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Pastas', 'icon' => '🍝', 'sort_order' => 7],
+                'category' => ['name' => 'Pastas', 'icon' => '🍝', 'sort_order' => 8],
                 'products' => [
                     ['name' => 'Flaming Pasta', 'price' => 799, 'image' => '🍝', 'addons' => $toppings,
                         'description' => 'Pasta, chicken, spicy sauce, capsicum, jalapeños, mozzarella cheese and italian herbs'],
@@ -164,7 +186,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Signature Pizzas', 'icon' => '🍕', 'sort_order' => 8],
+                'category' => ['name' => 'Signature Pizzas', 'icon' => '🍕', 'sort_order' => 9],
                 'products' => [
                     ['name' => 'Cravellé Special Pizza', 'price' => 749, 'image' => '🍕', 'addons' => $toppings,
                         'description' => 'Tikka chicken, fajita chicken, special sauce, onion, mushrooms, black olives, capsicum, mozzarella cheese',
@@ -181,7 +203,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Traditional Pizzas', 'icon' => '🍕', 'sort_order' => 9],
+                'category' => ['name' => 'Traditional Pizzas', 'icon' => '🍕', 'sort_order' => 10],
                 'products' => [
                     ['name' => 'Chicken Tikka Pizza', 'price' => 699, 'image' => '🍕', 'addons' => $toppings,
                         'description' => 'Tikka chicken, mild pizza sauce, onion, tomato, black olives, mozzarella cheese',
@@ -205,7 +227,7 @@ class MenuSeeder extends Seeder
             ],
             [
                 // Extreme pizzas are only made in medium and large.
-                'category' => ['name' => 'Extreme Pizzas', 'icon' => '🌶️', 'sort_order' => 10],
+                'category' => ['name' => 'Extreme Pizzas', 'icon' => '🌶️', 'sort_order' => 11],
                 'products' => [
                     ['name' => 'Extreme Peri Peri Pizza', 'price' => 1499, 'image' => '🌶️', 'addons' => $toppings,
                         'description' => 'Spicy chicken, fiery peri peri sauce, onion, capsicum, mozzarella cheese',
@@ -222,7 +244,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Sauces', 'icon' => '🥫', 'sort_order' => 11],
+                'category' => ['name' => 'Sauces', 'icon' => '🥫', 'sort_order' => 12],
                 'products' => [
                     ['name' => 'Garlic Mayo Sauce', 'price' => 99, 'image' => '🥫'],
                     ['name' => 'Dynamite Sauce', 'price' => 99, 'image' => '🌶️'],
@@ -236,7 +258,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Special Drinks', 'icon' => '🍹', 'sort_order' => 12],
+                'category' => ['name' => 'Special Drinks', 'icon' => '🍹', 'sort_order' => 13],
                 'products' => [
                     ['name' => 'Mint Margarita', 'price' => 349, 'image' => '🍹',
                         'variants' => [['Small', 349], ['Large', 549]]],
@@ -247,7 +269,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Drinks', 'icon' => '🥤', 'sort_order' => 13],
+                'category' => ['name' => 'Drinks', 'icon' => '🥤', 'sort_order' => 14],
                 'products' => [
                     ['name' => 'Regular Drink', 'price' => 99, 'image' => '🥤', 'stock' => 120],
                     ['name' => 'Half Litre Drink', 'price' => 149, 'image' => '🥤', 'stock' => 80],
@@ -256,7 +278,7 @@ class MenuSeeder extends Seeder
                 ],
             ],
             [
-                'category' => ['name' => 'Desserts', 'icon' => '🍰', 'sort_order' => 14],
+                'category' => ['name' => 'Desserts', 'icon' => '🍰', 'sort_order' => 15],
                 'products' => [
                     ['name' => 'Molten Lava', 'price' => 849, 'image' => '🍫',
                         'description' => 'Served with a scoop of vanilla ice cream'],
